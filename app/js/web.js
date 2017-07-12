@@ -15,13 +15,14 @@
  */
 
 import storage from "local-storage-fallback";
+import jwt_decode from "jwt-decode"
 
 export default class Web {
     constructor(endpoint, dispatch) {
         const namespace = 'Web'
         this.dispatch = dispatch
     }
-    makeCall(path, method, options) {
+    makeCallJSON(path, method, useJSON, options) {
         let qs = '';
         let body;
         let token = storage.getItem('token');
@@ -40,13 +41,20 @@ export default class Web {
         }
         // POST or PUT
         else  {
-            let formData = new FormData();
-            for (const key of Object.keys(options)) {
-                formData.append(key, options[key])
+            if(useJSON) {
+                headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                };
+                console.log(options)
+                body = JSON.stringify(options);
+            } else {
+                let formData = new FormData();
+                for (const key of Object.keys(options)) {
+                    formData.append(key, options[key])
+                }
+                body = formData;
             }
-
-            body = formData;
-            // body = JSON.stringify(options);
         }
 
 
@@ -104,8 +112,14 @@ export default class Web {
         //     return result
         //   })
     }
+    makeCall(path, method, options) {
+        return this.makeCallJSON(path, method, false, options)
+    }
     makeCallPost(path, options) {
       return this.makeCall(path, "POST", options)
+    }
+    makeCallJSONPost(path, options) {
+        return this.makeCallJSON(path, "POST", true, options)
     }
     makeCallGet(path, options) {
       return this.makeCall(path, "GET", options)
@@ -123,10 +137,14 @@ export default class Web {
     return !!storage.getItem('token')
   }
   Login(args) {
-    return this.makeCallPost('/manager/login', args)
+    return this.makeCallJSONPost('/manager/login', args)
       .then(res => {
-        if(res.headers.get("authorization") !== null) {
-            storage.setItem('token', `${res.headers.get("authorization")}`)
+          let authorization = res.headers.get("authorization");
+          if(authorization !== null) {
+            res.headers.get("authorization")
+            storage.setItem('token', `${authorization}`)
+            let decode = jwt_decode(authorization);
+            console.log(decode)
         }
         return res
       })

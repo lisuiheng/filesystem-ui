@@ -27,7 +27,7 @@ var exports = {
   output: {
     path: path.resolve(__dirname, 'dev'),
     filename: 'index_bundle.js',
-    publicPath: '/minio/'
+    publicPath: '/'
   },
   module: {
     loaders: [{
@@ -56,7 +56,7 @@ var exports = {
   },
   devServer: {
     historyApiFallback: {
-      index: '/minio/'
+      index: '/'
     },
     proxy: {
       '/manager': {

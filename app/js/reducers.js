@@ -58,8 +58,8 @@ export default (state = {
     },
     prefixWritable: false,
     checkedObjects: [],
-    showRegister: true,
-    showLogin: false
+    showRegister: false,
+    showLogin: true
   }, action) => {
   let newState = Object.assign({}, state)
   switch (action.type) {

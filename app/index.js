@@ -59,9 +59,9 @@ function authNeeded(nextState, replace, cb) {
   if (web.LoggedIn()) {
     return cb()
   }
-  if (location.pathname === minioBrowserPrefix || location.pathname === minioBrowserPrefix + '/') {
-    replace(`${minioBrowserPrefix}/login`)
-  }
+    if (location.pathname === minioBrowserPrefix || location.pathname === minioBrowserPrefix + '/') {
+        replace(`${minioBrowserPrefix}/login`)
+    }
   return cb()
 }
 
@@ -81,12 +81,10 @@ ReactDOM.render((
   <Provider store={ store } web={ web }>
     <Router history={ browserHistory }>
       <Route path='/' component={ App }>
-        <Route path='minio' component={ App }>
           <IndexRoute component={ Browse } onEnter={ authNeeded } />
           <Route path='login' component={ Login } onEnter={ authNotNeeded } />
           <Route path=':bucket' component={ Browse } onEnter={ authNeeded } />
           <Route path=':bucket/*' component={ Browse } onEnter={ authNeeded } />
-        </Route>
       </Route>
     </Router>
   </Provider>

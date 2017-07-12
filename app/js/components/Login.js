@@ -15,7 +15,6 @@
  */
 
 import React from 'react'
-import classNames from 'classnames'
 import logo from '../../img/logo.svg'
 import Alert from 'react-bootstrap/lib/Alert'
 import ButtonGroup from 'react-bootstrap/lib/ButtonGroup'

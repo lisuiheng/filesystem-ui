@@ -533,7 +533,7 @@ export default class Browse extends React.Component {
                                 settingsFunc={ this.showSettings.bind(this) }
                                 logoutFunc={ this.logout.bind(this) } />
     } else {
-      loginButton = <a className='btn btn-danger' href='/minio/login'>Login</a>
+      loginButton = <a className='btn btn-danger' href='/login'>Login</a>
     }
 
     if (web.LoggedIn()) {

@@ -17,7 +17,7 @@
 // File for all the browser constants.
 
 // minioBrowserPrefix absolute path.
-export const minioBrowserPrefix = '/minio'
+export const minioBrowserPrefix = ''
 export const READ_ONLY = 'readonly'
 export const WRITE_ONLY = 'writeonly'
 export const READ_WRITE = 'readwrite'

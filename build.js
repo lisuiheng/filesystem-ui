@@ -20,11 +20,7 @@ var exec = require('child_process').exec
 var fs = require('fs')
 
 var isProduction = process.env.NODE_ENV == 'production' ? true : false
-var assetsFileName = ''
-var commitId = ''
 var date = moment.utc()
-var version = date.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-var releaseTag = date.format('YYYY-MM-DDTHH-mm-ss') + 'Z'
 var buildType = 'DEVELOPMENT'
 if (process.env.MINIO_UI_BUILD) buildType = process.env.MINIO_UI_BUILD
 
@@ -52,15 +48,6 @@ async.waterfall([
       }
       console.log('Running', cmd)
       exec(cmd, cb)
-    },
-    function(stdout, stderr, cb) {
-      if (isProduction) {
-        fs.renameSync('production/index_bundle.js',
-                      'production/index_bundle-' + releaseTag + '.js')
-      } else {
-        fs.renameSync('dev/index_bundle.js',
-                      'dev/index_bundle-' + releaseTag + '.js')
-      }
     },
   ], function(err) {
     if (err) return console.log(err)
