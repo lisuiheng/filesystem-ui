@@ -153,7 +153,6 @@ export default class Login extends React.Component {
               label="密码"
               id="password"
               name="password"
-              value=""
               type="password"
               spellCheck="false"
               required="required"
