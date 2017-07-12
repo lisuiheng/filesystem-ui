@@ -108,7 +108,7 @@ handleLoader()
 if (storage.getItem('newlyUpdated')) {
   store.dispatch(actions.showAlert({
     type: 'success',
-    message: "Updated to the latest UI Version."
+    message: "Updated to  the latest UI Version."
   }))
   storage.removeItem('newlyUpdated')
 }
