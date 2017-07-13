@@ -17,11 +17,13 @@
 import React from 'react'
 import logo from '../../img/logo.svg'
 import Alert from 'react-bootstrap/lib/Alert'
-import ButtonGroup from 'react-bootstrap/lib/ButtonGroup'
-import Button from 'react-bootstrap/lib/Button'
+import browserHistory from 'react-router/lib/browserHistory'
 import * as actions from '../actions'
 import InputGroup from '../components/InputGroup'
 import ButtonCheck from '../components/ButtonCheck'
+import ConfirmModal from './ConfirmModal'
+import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST } from '../constants.js'
+import * as utils from '../utils'
 
 export default class Login extends React.Component {
   handleSubmit(event) {
@@ -64,7 +66,21 @@ export default class Login extends React.Component {
             username: username,
             password: password
         }).then((res) => {
+            if(res.ok) {
+                dispatch(actions.showAlert({
+                    type: 'success',
+                    message: '注册成功请查收激活邮件'
+                }))
+            } else {
+                res.json().then(function (result) {
+                    dispatch(actions.setLoginError())
+                    dispatch(actions.showAlert({
+                        type: 'danger',
+                        message: result.exception
+                    }))
+                })
 
+            }
         }).catch(e => {
             dispatch(actions.setLoginError())
             dispatch(actions.showAlert({
@@ -84,6 +100,14 @@ export default class Login extends React.Component {
       message: ''
     }))
     document.body.classList.add('is-guest')
+
+    this.history = browserHistory.listen(({pathname}) => {
+      if (pathname === `${minioBrowserPrefix}/${PATH_NAME_LOGIN}`)  {
+          dispatch(actions.showLogin())
+      } else if(pathname === `${minioBrowserPrefix}/${PATH_NAME_REGIST}`) {
+          dispatch(actions.showRegister())
+      }
+    })
   }
 
   componentWillUnmount() {
@@ -97,18 +121,40 @@ export default class Login extends React.Component {
 
   clickRegisterButton(e) {
     e.preventDefault()
-    const {dispatch} = this.props
-    dispatch(actions.showRegister())
+    if (location.pathname === `${minioBrowserPrefix}/${PATH_NAME_REGIST}`) return
+    browserHistory.push(utils.pathJoin(`${PATH_NAME_REGIST}`))
   }
 
   clickLoginButton(e) {
     e.preventDefault()
+    if (location.pathname === `${minioBrowserPrefix}/${PATH_NAME_LOGIN}`) return
+    browserHistory.push(utils.pathJoin(`${PATH_NAME_LOGIN}`))
+  }
+
+  sendResetPassword() {
+      const {web, loginUsername} = this.props
+      web.ResetPassword(loginUsername)
+  }
+
+  showSendResetPasswordConfirmation(e, object) {
+    e.preventDefault()
     const {dispatch} = this.props
-    dispatch(actions.showLogin())
+    dispatch(actions.showSendResetPasswordConfirmation(object))
+  }
+
+  hideSendResetPasswordConfirmation() {
+    const {dispatch} = this.props
+    dispatch(actions.hideSendResetPasswordConfirmation())
+  }
+
+  changeUsername(e) {
+      const {dispatch} = this.props
+      let username = document.getElementById('username').value
+      dispatch(actions.setLoginUsername(username))
   }
 
   render() {
-    const {alert, showLogin, showRegister} = this.props
+    const {alert, showLogin, showRegister, resetPasswordConfirmation, loginUsername} = this.props
     let alertBox = <Alert className={ 'alert animated ' + (alert.show ? 'fadeInDown' : 'fadeOutUp') } bsStyle={ alert.type } onDismiss={ this.hideAlert.bind(this) }>
                      <div className='text-center'>
                        { alert.message }
@@ -130,9 +176,26 @@ export default class Login extends React.Component {
                                 checkButton={ this.clickLoginButton.bind(this) }>
                               </ButtonCheck>
 
+    let unableLogin = <div>
+                        <a className="ub-login"
+                           onClick={ this.showSendResetPasswordConfirmation.bind(this) }
+                        >无法登录?</a>
+                        <ConfirmModal show={ resetPasswordConfirmation.show }
+                                      text='修改密码链接将会发送至你的注册邮箱'
+                                      sub={ loginUsername }
+                                      okText='发送'
+                                      cancelText='Cancel'
+                                      okHandler={ this.sendResetPassword.bind(this) }
+                                      cancelHandler={ this.hideSendResetPasswordConfirmation.bind(this) }>
+                        </ConfirmModal>
+                    </div>
+
+    if (!showLogin) {
+        unableLogin = ''
+    }
 
 
-    return (
+      return (
       <div className="login">
         { alertBox }
         <div className="l-wrap">
@@ -143,10 +206,10 @@ export default class Login extends React.Component {
               label="用户名"
               id="username"
               name="username"
-              value="admin"
-              type="text"
+              type="email"
               spellCheck="false"
               required="required"
+              onChange={ this.changeUsername.bind(this) }
               autoComplete="username">
             </InputGroup>
             <InputGroup className="ig-dark"
@@ -158,9 +221,10 @@ export default class Login extends React.Component {
               required="required"
               autoComplete="new-password">
             </InputGroup>
-              <button className="lw-btn" type="submit">
-                  <i className="fa fa-sign-in"></i>
-              </button>
+            <button className="lw-btn" type="submit">
+              <i className="fa fa-sign-in"></i>
+            </button>
+            { unableLogin }
           </form>
         </div>
         <div className="l-footer">

@@ -51,6 +51,10 @@ export default (state = {
       object: '',
       show: false
     },
+    resetPasswordConfirmation: {
+        object: '',
+        show: false
+    },
     shareObject: {
       show: false,
       url: '',
@@ -59,7 +63,8 @@ export default (state = {
     prefixWritable: false,
     checkedObjects: [],
     showRegister: false,
-    showLogin: true
+    showLogin: true,
+    loginUsername: '',
   }, action) => {
   let newState = Object.assign({}, state)
   switch (action.type) {
@@ -179,6 +184,9 @@ export default (state = {
     case actions.DELETE_CONFIRMATION:
       newState.deleteConfirmation = Object.assign({}, action.payload)
       break
+    case actions.SEND_RESET_PASSWORD_CONFIRMATION:
+      newState.resetPasswordConfirmation = Object.assign({}, action.payload)
+      break
     case actions.SET_SHARE_OBJECT:
       newState.shareObject = Object.assign({}, action.shareObject)
       break
@@ -209,6 +217,9 @@ export default (state = {
     case actions.SHOW_LOGIN:
       newState.showRegister = false
       newState.showLogin = action.showLogin
+      break
+    case actions.SET_LOGIN_USERNAME:
+      newState.loginUsername = action.username
       break
   }
 

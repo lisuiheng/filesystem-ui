@@ -56,7 +56,8 @@ var exports = {
   },
   devServer: {
     historyApiFallback: {
-      index: '/'
+      index: '/',
+      disableDotRule: true
     },
     proxy: {
       '/manager': {

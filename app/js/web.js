@@ -150,7 +150,10 @@ export default class Web {
       })
   }
   Regist(args) {
-    return this.makeCallPost('/manager/regist', args)
+    return this.makeCallPost('/manager/users/regist', args)
+  }
+  Verification(path) {
+    return this.makeCallGet(`/manager/users/verification/${path}`)
   }
   Logout() {
     storage.removeItem('token')

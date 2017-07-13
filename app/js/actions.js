@@ -59,6 +59,9 @@ export const CHECKED_OBJECTS_REMOVE = 'CHECKED_OBJECTS_REMOVE'
 export const CHECKED_OBJECTS_RESET = 'CHECKED_OBJECTS_RESET'
 export const SHOW_REGISTER = 'SHOW_REGISTER'
 export const SHOW_LOGIN = 'SHOW_LOGIN'
+export const SEND_RESET_PASSWORD_CONFIRMATION = 'SEND_RESET_PASSWORD_CONFIRMATION'
+export const SET_LOGIN_USERNAME = 'SET_LOGIN_USERNAME'
+
 
 export const showDeleteConfirmation = (object) => {
   return {
@@ -71,13 +74,33 @@ export const showDeleteConfirmation = (object) => {
 }
 
 export const hideDeleteConfirmation = () => {
-  return {
-    type: DELETE_CONFIRMATION,
-    payload: {
-      object: '',
-      show: false
+    return {
+        type: DELETE_CONFIRMATION,
+        payload: {
+            object: '',
+            show: false
+        }
     }
-  }
+}
+
+export const showSendResetPasswordConfirmation = (object) => {
+    return {
+        type: SEND_RESET_PASSWORD_CONFIRMATION,
+        payload: {
+            object,
+            show: true
+        }
+    }
+}
+
+export const hideSendResetPasswordConfirmation = () => {
+    return {
+        type: SEND_RESET_PASSWORD_CONFIRMATION,
+        payload: {
+            object: '',
+            show: false
+        }
+    }
 }
 
 export const showShareObject = (object, url) => {
@@ -673,5 +696,12 @@ export const showLogin = () => {
     return {
         type: SHOW_LOGIN,
         showLogin: true
+    }
+}
+
+export const setLoginUsername = (username) => {
+    return {
+        type: SET_LOGIN_USERNAME,
+        username
     }
 }

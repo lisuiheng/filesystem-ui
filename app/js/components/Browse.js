@@ -43,7 +43,7 @@ import logo from '../../img/logo.svg'
 import * as actions from '../actions'
 import * as utils from '../utils'
 import * as mime from '../mime'
-import { minioBrowserPrefix } from '../constants'
+import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST } from '../constants.js'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import storage from 'local-storage-fallback'
 import InfiniteScroll from 'react-infinite-scroller';
@@ -108,7 +108,7 @@ export default class Browse extends React.Component {
                 dispatch(actions.setVisibleBuckets(buckets))
                 if (location.pathname === minioBrowserPrefix
                     || location.pathname === minioBrowserPrefix + '/') {
-                    browserHistory.push(utils.pathJoin(buckets[0]))
+                    browserHistory.push(utils.pathJoin(buckets[0].name))
                     // dispatch(actions.selectBucket(buckets[0]))
                 }else if(currentBucket === "") {
                     let decPathname = decodeURI(location.pathname)
@@ -145,7 +145,8 @@ export default class Browse extends React.Component {
     }
     this.history = browserHistory.listen(({pathname}) => {
       let decPathname = decodeURI(pathname)
-      if (decPathname === `${minioBrowserPrefix}/login`) return // FIXME: better organize routes and remove this
+      if (decPathname === `${minioBrowserPrefix}/${PATH_NAME_LOGIN}`
+          || decPathname === `${minioBrowserPrefix}/${PATH_NAME_REGIST}`) return // FIXME: better organize routes and remove this
       if (!decPathname.endsWith('/'))
         decPathname += '/'
       if (decPathname === minioBrowserPrefix + '/') {
@@ -167,7 +168,7 @@ export default class Browse extends React.Component {
   selectBucket(e, bucket) {
     e.preventDefault()
     if (bucket === this.props.currentBucket) return
-    browserHistory.push(utils.pathJoin(bucket))
+    browserHistory.push(utils.pathJoin(bucket.name))
   }
 
   searchBuckets(e) {
@@ -187,7 +188,7 @@ export default class Browse extends React.Component {
     const encPrefix = encodeURI(prefix)
     if (prefix.endsWith('/') || prefix === '') {
       if (prefix === currentPath) return
-      browserHistory.push(utils.pathJoin(currentBucket, encPrefix))
+      browserHistory.push(utils.pathJoin(currentBucket.name))
     } else {
       // window.location = `${window.location.origin}/download/20,35088d0e58?token=${storage.getItem('token')}`
         let selectObjects = objects.filter(object => {return object.name === prefix});

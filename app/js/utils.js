@@ -78,8 +78,6 @@ export const pathSlice = (path) => {
   }
 }
 
-export const pathJoin = (bucket, prefix) => {
-  if (!prefix)
-    prefix = ''
-  return minioBrowserPrefix + '/' + bucket.name + '/' + prefix
+export const pathJoin = (path) => {
+  return minioBrowserPrefix + '/' + path
 }

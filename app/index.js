@@ -33,12 +33,14 @@ import connect from 'react-redux/lib/components/connect'
 
 import Moment from 'moment'
 
-import { minioBrowserPrefix } from './js/constants.js'
+import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST } from './js/constants.js'
 import * as actions from './js/actions.js'
 import reducer from './js/reducers.js'
 
 import _Login from './js/components/Login.js'
+import _Verification from './js/components/Verification.js'
 import _Browse from './js/components/Browse.js'
+import _ResetPassword from './js/components/ResetPassword.js'
 import fontAwesome from 'font-awesome/css/font-awesome.css'
 
 import Web from './js/web'
@@ -48,6 +50,8 @@ import storage from 'local-storage-fallback'
 const store = applyMiddleware(thunkMiddleware)(createStore)(reducer)
 const Browse = connect(state => state)(_Browse)
 const Login = connect(state => state)(_Login)
+const Verification = connect(state => state)(_Verification)
+const ResetPassword = connect(state => state)(_ResetPassword)
 
 let web = new Web(`${window.location.protocol}//${window.location.host}${minioBrowserPrefix}`, store.dispatch)
 
@@ -60,7 +64,7 @@ function authNeeded(nextState, replace, cb) {
     return cb()
   }
     if (location.pathname === minioBrowserPrefix || location.pathname === minioBrowserPrefix + '/') {
-        replace(`${minioBrowserPrefix}/login`)
+        replace(`${minioBrowserPrefix}/${PATH_NAME_LOGIN}`)
     }
   return cb()
 }
@@ -82,7 +86,10 @@ ReactDOM.render((
     <Router history={ browserHistory }>
       <Route path='/' component={ App }>
           <IndexRoute component={ Browse } onEnter={ authNeeded } />
-          <Route path='login' component={ Login } onEnter={ authNotNeeded } />
+          <Route path={ PATH_NAME_LOGIN } component={ Login } onEnter={ authNotNeeded } />
+          <Route path={ PATH_NAME_REGIST } component={ Login } onEnter={ authNotNeeded } />
+          <Route path='verification/*' component={ Verification } onEnter={ authNotNeeded } />
+          <Route path='password/reset/*' component={ ResetPassword } onEnter={ authNeeded } />
           <Route path=':bucket' component={ Browse } onEnter={ authNeeded } />
           <Route path=':bucket/*' component={ Browse } onEnter={ authNeeded } />
       </Route>

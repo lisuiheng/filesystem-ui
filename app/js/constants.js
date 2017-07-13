@@ -18,6 +18,10 @@
 
 // minioBrowserPrefix absolute path.
 export const minioBrowserPrefix = ''
+export const PATH_NAME_LOGIN = 'login'
+export const PATH_NAME_REGIST = 'regist'
 export const READ_ONLY = 'readonly'
 export const WRITE_ONLY = 'writeonly'
 export const READ_WRITE = 'readwrite'
+
+export const EXCEPTION_EXPIRED_JWT = 'io.jsonwebtoken.ExpiredJwtException'
