@@ -62,6 +62,7 @@ export default class Login extends React.Component {
     }
 
     if(showRegister) {
+        dispatch(actions.setLoading())
         web.Regist({
             username: username,
             password: password
