@@ -102,7 +102,7 @@ export default class Login extends React.Component {
               dispatch(actions.setLoadResponse(res, '验证成功请登录'))
               if(res.ok) {
                   setTimeout(() => {
-                      dispatch(hideAlert())
+                      dispatch(actions.hideAlert())
                       location.pathname = `${minioBrowserPrefix}/${PATH_NAME_LOGIN}`
                   },5000)
               }
