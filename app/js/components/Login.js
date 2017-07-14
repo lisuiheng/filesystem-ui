@@ -22,13 +22,15 @@ import * as actions from '../actions'
 import InputGroup from '../components/InputGroup'
 import ButtonCheck from '../components/ButtonCheck'
 import ConfirmModal from './ConfirmModal'
-import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST } from '../constants.js'
+import Loader from 'halogen/PulseLoader'
+import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST, PATH_NAME_PASSWORD_RESET } from '../constants.js'
 import * as utils from '../utils'
+import {PATH_NAME_VERIFICATION} from "../constants";
 
 export default class Login extends React.Component {
   handleSubmit(event) {
     event.preventDefault()
-    const {web, dispatch, loginRedirectPath, showLogin, showRegister} = this.props
+    const {web, dispatch, loginRedirectPath, showLogin, showRegister, showPasswordReset } = this.props
     let message = ''
     if (!document.getElementById('username').value) {
       message = '密码不能为空'
@@ -47,17 +49,15 @@ export default class Login extends React.Component {
     let password = document.getElementById('password').value
 
     if(showLogin) {
+        dispatch(actions.setLoading())
         web.Login({
             username: username,
             password: password
         }).then((res) => {
+            dispatch(actions.setLoadResponse(res))
             this.context.router.push(loginRedirectPath)
         }).catch(e => {
-            dispatch(actions.setLoginError())
-            dispatch(actions.showAlert({
-                type: 'danger',
-                message: e.message
-            }))
+            dispatch(actions.setLoadingError(e))
         })
     }
 
@@ -66,34 +66,20 @@ export default class Login extends React.Component {
             username: username,
             password: password
         }).then((res) => {
-            if(res.ok) {
-                dispatch(actions.showAlert({
-                    type: 'success',
-                    message: '注册成功请查收激活邮件'
-                }))
-            } else {
-                res.json().then(function (result) {
-                    dispatch(actions.setLoginError())
-                    dispatch(actions.showAlert({
-                        type: 'danger',
-                        message: result.exception
-                    }))
-                })
-
-            }
+            dispatch(actions.setLoadResponse(res, '注册成功请查收激活邮件'))
         }).catch(e => {
-            dispatch(actions.setLoginError())
-            dispatch(actions.showAlert({
-                type: 'danger',
-                message: e.message
-            }))
+            dispatch(actions.setLoadingException(e))
         })
+    }
+
+    if(showPasswordReset) {
+
     }
 
   }
 
   componentWillMount() {
-    const {dispatch} = this.props
+    const {dispatch, web} = this.props
     // Clear out any stale message in the alert of previous page
     dispatch(actions.showAlert({
       type: 'danger',
@@ -106,6 +92,23 @@ export default class Login extends React.Component {
           dispatch(actions.showLogin())
       } else if(pathname === `${minioBrowserPrefix}/${PATH_NAME_REGIST}`) {
           dispatch(actions.showRegister())
+      } else if(pathname.startsWith(`${minioBrowserPrefix}/${PATH_NAME_PASSWORD_RESET}`)) {
+          dispatch(actions.showPasswordReset())
+      } else if(pathname.startsWith(`${minioBrowserPrefix}/${PATH_NAME_VERIFICATION}`)) {
+          dispatch(actions.showVerification())
+
+          let token = pathname.substring(`/${PATH_NAME_VERIFICATION}/`.length, pathname.length);
+          web.Verification(token).then((res) => {
+              dispatch(actions.setLoadResponse(res, '验证成功请登录'))
+              if(res.ok) {
+                  setTimeout(() => {
+                      dispatch(hideAlert())
+                      location.pathname = `${minioBrowserPrefix}/${PATH_NAME_LOGIN}`
+                  },5000)
+              }
+          }).catch(e => {
+              dispatch(actions.setLoadingError(e))
+          })
       }
     })
   }
@@ -154,7 +157,9 @@ export default class Login extends React.Component {
   }
 
   render() {
-    const {alert, showLogin, showRegister, resetPasswordConfirmation, loginUsername} = this.props
+    const {alert, showLogin, showRegister, showPasswordReset, showVerification, resetPasswordConfirmation, loginUsername, loading} = this.props
+
+
     let alertBox = <Alert className={ 'alert animated ' + (alert.show ? 'fadeInDown' : 'fadeOutUp') } bsStyle={ alert.type } onDismiss={ this.hideAlert.bind(this) }>
                      <div className='text-center'>
                        { alert.message }
@@ -163,6 +168,33 @@ export default class Login extends React.Component {
     // Make sure you don't show a fading out alert box on the initial web-page load.
     if (!alert.message)
       alertBox = ''
+
+    let usernameInput =  <InputGroup className="ig-dark"
+                                     label="用户名"
+                                     id="username"
+                                     name="username"
+                                     // value="lisuiheng@163.com"
+                                     type="email"
+                                     spellCheck="false"
+                                     required="required"
+                                     onChange={ this.changeUsername.bind(this) }
+                                     autoComplete="username">
+                          </InputGroup>
+
+    let passwordLabel = "密码"
+    if(showPasswordReset) {
+        passwordLabel = "重置密码"
+    }
+
+    let passwordInput = <InputGroup className="ig-dark"
+                                    label={ passwordLabel }
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    spellCheck="false"
+                                    required="required"
+                                    autoComplete="new-password">
+                         </InputGroup>
 
     let showRegisterButton =    <ButtonCheck
                                     className={ (showRegister ? 'sl-btn' : '')}
@@ -190,43 +222,44 @@ export default class Login extends React.Component {
                         </ConfirmModal>
                     </div>
 
-    if (!showLogin) {
+
+    if (showLogin) {
         unableLogin = ''
     }
 
+    if (showPasswordReset) {
+        showLoginButton = ''
+        showRegisterButton = ''
+        usernameInput = ''
+        unableLogin = ''
+    }
 
+    let form = <div className="l-wrap">
+      <form onSubmit={ this.handleSubmit.bind(this) }>
+          { showRegisterButton }
+          { showLoginButton }
+          { usernameInput }
+          { passwordInput }
+          <button className="lw-btn" type="submit">
+              <i className="fa fa-sign-in"></i>
+          </button>
+          { unableLogin }
+      </form>
+    </div>
+
+    if (showVerification) {
+        form = ''
+    }
+
+
+
+  if(loading) {
+      form =  <div className="loading"><Loader color="#ffffff" size="16px" margin="4px"/></div>
+  }
       return (
       <div className="login">
         { alertBox }
-        <div className="l-wrap">
-          <form onSubmit={ this.handleSubmit.bind(this) }>
-            { showRegisterButton }
-            { showLoginButton }
-            <InputGroup className="ig-dark"
-              label="用户名"
-              id="username"
-              name="username"
-              type="email"
-              spellCheck="false"
-              required="required"
-              onChange={ this.changeUsername.bind(this) }
-              autoComplete="username">
-            </InputGroup>
-            <InputGroup className="ig-dark"
-              label="密码"
-              id="password"
-              name="password"
-              type="password"
-              spellCheck="false"
-              required="required"
-              autoComplete="new-password">
-            </InputGroup>
-            <button className="lw-btn" type="submit">
-              <i className="fa fa-sign-in"></i>
-            </button>
-            { unableLogin }
-          </form>
-        </div>
+        { form }
         <div className="l-footer">
           <a className="lf-logo" href=""><img src={ logo } alt="" /></a>
           <div className="lf-server">

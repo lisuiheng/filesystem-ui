@@ -33,25 +33,24 @@ import connect from 'react-redux/lib/components/connect'
 
 import Moment from 'moment'
 
-import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST } from './js/constants.js'
+import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST , PATH_NAME_PASSWORD_RESET} from './js/constants.js'
 import * as actions from './js/actions.js'
 import reducer from './js/reducers.js'
 
 import _Login from './js/components/Login.js'
-import _Verification from './js/components/Verification.js'
 import _Browse from './js/components/Browse.js'
-import _ResetPassword from './js/components/ResetPassword.js'
 import fontAwesome from 'font-awesome/css/font-awesome.css'
 
 import Web from './js/web'
 window.Web = Web
 
 import storage from 'local-storage-fallback'
+import {PATH_NAME_VERIFICATION} from "./js/constants";
 const store = applyMiddleware(thunkMiddleware)(createStore)(reducer)
 const Browse = connect(state => state)(_Browse)
 const Login = connect(state => state)(_Login)
-const Verification = connect(state => state)(_Verification)
-const ResetPassword = connect(state => state)(_ResetPassword)
+const passwordResetPath = `${PATH_NAME_PASSWORD_RESET}/*`
+const verificationResetPath = `${PATH_NAME_VERIFICATION}/*`
 
 let web = new Web(`${window.location.protocol}//${window.location.host}${minioBrowserPrefix}`, store.dispatch)
 
@@ -88,8 +87,8 @@ ReactDOM.render((
           <IndexRoute component={ Browse } onEnter={ authNeeded } />
           <Route path={ PATH_NAME_LOGIN } component={ Login } onEnter={ authNotNeeded } />
           <Route path={ PATH_NAME_REGIST } component={ Login } onEnter={ authNotNeeded } />
-          <Route path='verification/*' component={ Verification } onEnter={ authNotNeeded } />
-          <Route path='password/reset/*' component={ ResetPassword } onEnter={ authNeeded } />
+          <Route path={ passwordResetPath } component={ Login } onEnter={ authNotNeeded } />
+          <Route path={ verificationResetPath } component={ Login } onEnter={ authNotNeeded } />
           <Route path=':bucket' component={ Browse } onEnter={ authNeeded } />
           <Route path=':bucket/*' component={ Browse } onEnter={ authNeeded } />
       </Route>

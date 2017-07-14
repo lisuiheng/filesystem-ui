@@ -33,7 +33,6 @@ export default (state = {
       type: 'danger',
       message: ''
     },
-    loginError: false,
     sortNameOrder: false,
     sortSizeOrder: false,
     sortDateOrder: false,
@@ -64,7 +63,15 @@ export default (state = {
     checkedObjects: [],
     showRegister: false,
     showLogin: true,
+    showVerification: false,
+    showPasswordReset: false,
     loginUsername: '',
+    loading: false,
+    loadResult: {
+        status: '',
+        result: {}
+    },
+    fromLab: false,
   }, action) => {
   let newState = Object.assign({}, state)
   switch (action.type) {
@@ -213,14 +220,39 @@ export default (state = {
     case actions.SHOW_REGISTER:
       newState.showRegister = action.showRegister
       newState.showLogin = false
+      newState.showPasswordReset = false
+        newState.showVerification = false
       break
     case actions.SHOW_LOGIN:
-      newState.showRegister = false
       newState.showLogin = action.showLogin
+      newState.showRegister = false
+      newState.showVerification = false
+      newState.showPasswordReset = false
       break
+    case actions.SHOW_VERIFICATION:
+        newState.showVerification = action.showVerification
+        newState.showLogin = false
+        newState.showRegister = false
+        newState.showPasswordReset = false
+        break
+    case actions.SHOW_PASSWORD_RESET:
+        newState.showPasswordReset = action.showPasswordReset
+        newState.showLogin = false
+        newState.showRegister = false
+        newState.showVerification = false
+        break
     case actions.SET_LOGIN_USERNAME:
       newState.loginUsername = action.username
       break
+    case actions.SET_LOADING:
+      newState.loading = action.loading
+      break
+    case actions.SET_LOAD_RESULT:
+      newState.loadResult = action.loadResult
+      break
+    case actions.SET_FROM_LAB:
+      newState.fromLab = action.fromLab
+    break
   }
 
   return newState

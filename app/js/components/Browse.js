@@ -43,10 +43,11 @@ import logo from '../../img/logo.svg'
 import * as actions from '../actions'
 import * as utils from '../utils'
 import * as mime from '../mime'
-import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST } from '../constants.js'
+import { minioBrowserPrefix, PATH_NAME_LOGIN, PATH_NAME_REGIST, PATH_NAME_PASSWORD_RESET } from '../constants.js'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import storage from 'local-storage-fallback'
 import InfiniteScroll from 'react-infinite-scroller';
+import {OWNERTYPE_EQUIPMENT, OWNERTYPE_USER, PATH_NAME_VERIFICATION} from "../constants";
 
 export default class Browse extends React.Component {
   componentDidMount() {
@@ -65,26 +66,6 @@ export default class Browse extends React.Component {
                 dispatch(actions.setServerInfo(serverInfo))
             });
         })
-    // web.StorageInfo()
-    //   .then(res => {
-    //       res.json().then(function (storageInfo) {
-    //           storageInfo.used = storageInfo.total - storageInfo.free
-    //           dispatch(actions.setStorageInfo(storageInfo))
-    //       })
-    //     return web.ServerInfo()
-    //   })
-    //   .then(res => {
-    //       res.json().then(function (serverInfo) {
-    //           // let serverInfo = Object.assign({}, {
-    //           //     version: res.MinioVersion,
-    //           //     memory: res.MinioMemory,
-    //           //     platform: res.MinioPlatform,
-    //           //     runtime: res.MinioRuntime,
-    //           //     info: res.MinioGlobalInfo
-    //           // })
-    //           dispatch(actions.setServerInfo(serverInfo))
-    //       });
-    //   })
       .catch(err => {
         dispatch(actions.showAlert({
           type: 'danger',
@@ -94,58 +75,55 @@ export default class Browse extends React.Component {
   }
 
   componentWillMount() {
-    const {dispatch, currentBucket} = this.props
+    const {dispatch, currentBucket, web} = this.props
     // Clear out any stale message in the alert of Login page
     dispatch(actions.showAlert({
       type: 'danger',
       message: ''
     }))
     if (web.LoggedIn()) {
-      web.ListBuckets()
-        .then(res => {
-            res.json().then(function (buckets) {
-                dispatch(actions.setBuckets(buckets))
-                dispatch(actions.setVisibleBuckets(buckets))
-                if (location.pathname === minioBrowserPrefix
-                    || location.pathname === minioBrowserPrefix + '/') {
-                    browserHistory.push(utils.pathJoin(buckets[0].name))
-                    // dispatch(actions.selectBucket(buckets[0]))
-                }else if(currentBucket === "") {
-                    let decPathname = decodeURI(location.pathname)
-                    let obj = utils.pathSlice(decPathname)
-                    dispatch(actions.selectBucketByName(obj.bucketName))
-                }
+      web.ListBuckets().then((res) => {
+          let listBuckets = (buckets) => {
+              dispatch(actions.setBuckets(buckets))
+              dispatch(actions.setVisibleBuckets(buckets))
+              if (location.pathname === minioBrowserPrefix
+                  || location.pathname === minioBrowserPrefix + '/') {
+                  browserHistory.push(utils.pathJoin(buckets[0].name))
+                  // dispatch(actions.selectBucket(buckets[0]))
+              }else if(currentBucket === "") {
+                  let decPathname = decodeURI(location.pathname)
+                  let obj = utils.pathSlice(decPathname)
+                  dispatch(actions.selectBucketByName(obj.bucketName))
+              }
+          }
+          dispatch(actions.setLoadResponse(res, null, null, listBuckets))
 
-                // let buckets
-                // if (!bucketList)
-                //   buckets = []
-                // else
-                //   buckets = bucketList.map(bucket => bucket.name)
-                // if (buckets.length) {
-                //   dispatch(actions.setBuckets(buckets))
-                //   dispatch(actions.setVisibleBuckets(buckets))
-                //   if (location.pathname === minioBrowserPrefix || location.pathname === minioBrowserPrefix + '/') {
-                //     browserHistory.push(utils.pathJoin(buckets[0]))
-                //   }
-                // }
-            })
-          // let buckets
-          // if (!res.buckets)
-          //   buckets = []
-          // else
-          //   buckets = res.buckets.map(bucket => bucket.name)
-          // if (buckets.length) {
-          //   dispatch(actions.setBuckets(buckets))
-          //   dispatch(actions.setVisibleBuckets(buckets))
-          //   if (location.pathname === minioBrowserPrefix || location.pathname === minioBrowserPrefix + '/') {
-          //     browserHistory.push(utils.pathJoin(buckets[0]))
-          //   }
-          // }
-        })
+      }).catch(e => {
+          dispatch(actions.setLoadingError(e))
+      })
+        // .then(res => {
+        //
+        //     res.json().then(function (buckets) {
+        //         dispatch(actions.setBuckets(buckets))
+        //         dispatch(actions.setVisibleBuckets(buckets))
+        //         if (location.pathname === minioBrowserPrefix
+        //             || location.pathname === minioBrowserPrefix + '/') {
+        //             browserHistory.push(utils.pathJoin(buckets[0].name))
+        //             // dispatch(actions.selectBucket(buckets[0]))
+        //         }else if(currentBucket === "") {
+        //             let decPathname = decodeURI(location.pathname)
+        //             let obj = utils.pathSlice(decPathname)
+        //             dispatch(actions.selectBucketByName(obj.bucketName))
+        //         }
+        //     })
+        //
+        // })
     }
     this.history = browserHistory.listen(({pathname}) => {
       let decPathname = decodeURI(pathname)
       if (decPathname === `${minioBrowserPrefix}/${PATH_NAME_LOGIN}`
+          || decPathname.startsWith(`${minioBrowserPrefix}/${ PATH_NAME_PASSWORD_RESET }`)
+          || decPathname.startsWith(`${minioBrowserPrefix}/${ PATH_NAME_VERIFICATION }`)
           || decPathname === `${minioBrowserPrefix}/${PATH_NAME_REGIST}`) return // FIXME: better organize routes and remove this
       if (!decPathname.endsWith('/'))
         decPathname += '/'
@@ -184,8 +162,11 @@ export default class Browse extends React.Component {
 
   selectPrefix(e, prefix) {
     e.preventDefault()
-    const {dispatch, currentPath, web, currentBucket, objects} = this.props
+    const {dispatch, currentPath, web, currentBucket, objects, fromLab} = this.props
     const encPrefix = encodeURI(prefix)
+    if(fromLab) {
+        return
+    }
     if (prefix.endsWith('/') || prefix === '') {
       if (prefix === currentPath) return
       browserHistory.push(utils.pathJoin(currentBucket.name))
@@ -483,7 +464,7 @@ export default class Browse extends React.Component {
 
   render() {
     const {total, free} = this.props.storageInfo
-    const {showMakeBucketModal, alert, sortNameOrder, sortSizeOrder, sortDateOrder, showAbout, showBucketPolicy, checkedObjects} = this.props
+    const {showMakeBucketModal, alert, sortNameOrder, sortSizeOrder, sortDateOrder, showAbout, showBucketPolicy, checkedObjects, fromLab} = this.props
     const {version, memory, platform, runtime} = this.props.serverInfo
     const {sidebarStatus} = this.props
     const {showSettings} = this.props
@@ -580,7 +561,10 @@ export default class Browse extends React.Component {
                          </OverlayTrigger>
                        </Dropdown.Menu>
                      </Dropdown>
-
+        console.log(fromLab, currentBucket.ownerType)
+        if(!fromLab && currentBucket.ownerType === OWNERTYPE_EQUIPMENT) {
+            createButton = ''
+        }
     } else {
       if (prefixWritable)
         createButton = <Dropdown dropup className="feb-actions" id="fe-action-toggle">

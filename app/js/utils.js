@@ -81,3 +81,5 @@ export const pathSlice = (path) => {
 export const pathJoin = (path) => {
   return minioBrowserPrefix + '/' + path
 }
+
+

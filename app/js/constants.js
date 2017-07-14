@@ -20,8 +20,16 @@
 export const minioBrowserPrefix = ''
 export const PATH_NAME_LOGIN = 'login'
 export const PATH_NAME_REGIST = 'regist'
+export const PATH_NAME_PASSWORD_RESET = 'password/reset'
+export const PATH_NAME_VERIFICATION = 'verification'
 export const READ_ONLY = 'readonly'
 export const WRITE_ONLY = 'writeonly'
 export const READ_WRITE = 'readwrite'
 
 export const EXCEPTION_EXPIRED_JWT = 'io.jsonwebtoken.ExpiredJwtException'
+export const EXCEPTION_EXPIRED_ZUUL = 'com.netflix.zuul.exception.ZuulException'
+export const EXCEPTION_EXPIRED_USER_IN_USE = 'com.github.lisuiheng.filesystem.manager.common.exception.UserAlreeadyInUseException'
+export const EXCEPTION_EXPIRED_TOO_OFTEN = 'com.github.lisuiheng.filesystem.manager.common.exception.TooOftenExecution'
+
+export const OWNERTYPE_USER = 'USER'
+export const OWNERTYPE_EQUIPMENT = 'EQUIPMENT'

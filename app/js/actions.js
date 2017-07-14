@@ -17,7 +17,10 @@
 import Moment from 'moment'
 import browserHistory from 'react-router/lib/browserHistory'
 import storage from 'local-storage-fallback'
-import { minioBrowserPrefix } from './constants'
+import {
+    minioBrowserPrefix, EXCEPTION_EXPIRED_USER_IN_USE, EXCEPTION_EXPIRED_TOO_OFTEN,
+    EXCEPTION_EXPIRED_JWT, PATH_NAME_REGIST, EXCEPTION_EXPIRED_ZUUL, PATH_NAME_LOGIN
+} from './constants'
 
 export const SET_WEB = 'SET_WEB'
 export const SET_CURRENT_BUCKET = 'SET_CURRENT_BUCKET'
@@ -35,7 +38,6 @@ export const ADD_UPLOAD = 'ADD_UPLOAD'
 export const STOP_UPLOAD = 'STOP_UPLOAD'
 export const UPLOAD_PROGRESS = 'UPLOAD_PROGRESS'
 export const SET_ALERT = 'SET_ALERT'
-export const SET_LOGIN_ERROR = 'SET_LOGIN_ERROR'
 export const SET_SHOW_ABORT_MODAL = 'SET_SHOW_ABORT_MODAL'
 export const SHOW_ABOUT = 'SHOW_ABOUT'
 export const SET_SORT_NAME_ORDER = 'SET_SORT_NAME_ORDER'
@@ -59,8 +61,13 @@ export const CHECKED_OBJECTS_REMOVE = 'CHECKED_OBJECTS_REMOVE'
 export const CHECKED_OBJECTS_RESET = 'CHECKED_OBJECTS_RESET'
 export const SHOW_REGISTER = 'SHOW_REGISTER'
 export const SHOW_LOGIN = 'SHOW_LOGIN'
+export const SHOW_VERIFICATION = 'SHOW_VERIFICATION'
+export const SHOW_PASSWORD_RESET = 'SHOW_PASSWORD_RESET'
 export const SEND_RESET_PASSWORD_CONFIRMATION = 'SEND_RESET_PASSWORD_CONFIRMATION'
 export const SET_LOGIN_USERNAME = 'SET_LOGIN_USERNAME'
+export const SET_LOADING = 'SET_LOADING'
+export const SET_LOAD_RESULT = 'SET_LOAD_RESULT'
+export const SET_FROM_LAB = 'SET_FROM_LAB'
 
 
 export const showDeleteConfirmation = (object) => {
@@ -364,31 +371,30 @@ export const listObjects = () => {
     web.ListObjects({
         ownerType: currentBucket.ownerType,
         ownerId: currentBucket.ownerId
+    }).then((res) => {
+        if(res.headers.get("lab")) {
+            dispatch(setFromLab())
+        } else {
+            dispatch(setNotFromLab())
+        }
+
+        let listBuckets = (objects) => {
+            if (!objects)
+                objects = []
+            objects = objects.map(object => {
+                object.name = object.name.replace(`${currentPath}`, '');
+                return object
+            })
+            dispatch(appendObjects(objects, res.nextmarker, res.istruncated))
+            dispatch(setPrefixWritable(res.writable))
+            dispatch(setLoadBucket(''))
+            dispatch(setLoadPath(''))
+        }
+        dispatch(setLoadResponse(res, null, null, listBuckets))
+
+    }).catch(e => {
+        dispatch(setLoadingError(e))
     })
-      .then(res => {
-          res.json().then(function (objects) {
-              if (!objects)
-                  objects = []
-              objects = objects.map(object => {
-                  object.name = object.name.replace(`${currentPath}`, '');
-                  return object
-              })
-              dispatch(appendObjects(objects, res.nextmarker, res.istruncated))
-              dispatch(setPrefixWritable(res.writable))
-              dispatch(setLoadBucket(''))
-              dispatch(setLoadPath(''))
-          })
-      })
-      .catch(err => {
-        dispatch(showAlert({
-          type: 'danger',
-          message: err.message
-        }))
-        dispatch(setLoadBucket(''))
-        dispatch(setLoadPath(''))
-        // Use browserHistory.replace instead of push so that browser back button works fine.
-        browserHistory.replace(`${minioBrowserPrefix}/login`)
-      })
   }
 }
 
@@ -401,37 +407,36 @@ export const selectPrefix = prefix => {
     web.ListObjects({
         ownerType: currentBucket.ownerType,
         ownerId: currentBucket.ownerId
+    }).then((res) => {
+        if(res.headers.get("lab")) {
+            dispatch(setFromLab())
+        } else {
+            dispatch(setNotFromLab())
+        }
+
+        let listBuckets = (objects) => {
+            if (!objects)
+                objects = []
+            objects = objects.map(object => {
+                object.name = object.name.replace(`${prefix}`, '');
+                return object
+            })
+            dispatch(appendObjects(
+                objects,
+                res.nextmarker,
+                res.istruncated
+            ))
+            dispatch(setPrefixWritable(res.writable))
+            dispatch(setSortNameOrder(false))
+            dispatch(setCurrentPath(prefix))
+            dispatch(setLoadBucket(''))
+            dispatch(setLoadPath(''))
+        }
+        dispatch(setLoadResponse(res, null, null, listBuckets))
+
+    }).catch(e => {
+        dispatch(setLoadingError(e))
     })
-      .then(res => {
-          res.json().then(function (objects) {
-              if (!objects)
-                  objects = []
-              objects = objects.map(object => {
-                  object.name = object.name.replace(`${prefix}`, '');
-                  return object
-              })
-              dispatch(appendObjects(
-                  objects,
-                  res.nextmarker,
-                  res.istruncated
-              ))
-              dispatch(setPrefixWritable(res.writable))
-              dispatch(setSortNameOrder(false))
-              dispatch(setCurrentPath(prefix))
-              dispatch(setLoadBucket(''))
-              dispatch(setLoadPath(''))
-          })
-      })
-      .catch(err => {
-        dispatch(showAlert({
-          type: 'danger',
-          message: err.message
-        }))
-        dispatch(setLoadBucket(''))
-        dispatch(setLoadPath(''))
-        // Use browserHistory.replace instead of push so that browser back button works fine.
-        browserHistory.replace(`${minioBrowserPrefix}/login`)
-      })
   }
 }
 
@@ -467,12 +472,7 @@ export const setShowAbortModal = showAbortModal => {
   }
 }
 
-export const setLoginError = () => {
-  return {
-    type: SET_LOGIN_ERROR,
-    loginError: true
-  }
-}
+
 
 export const downloadSelected = (url, req, xhr) => {
   return (dispatch) => {
@@ -699,9 +699,183 @@ export const showLogin = () => {
     }
 }
 
+export const showVerification= () => {
+    return {
+        type: SHOW_VERIFICATION,
+        showVerification: true
+    }
+}
+
+export const showPasswordReset = () => {
+    return {
+        type: SHOW_PASSWORD_RESET,
+        showPasswordReset: true
+    }
+}
+
 export const setLoginUsername = (username) => {
     return {
         type: SET_LOGIN_USERNAME,
         username
+    }
+}
+
+export const setLoading = () => {
+    return {
+        type: SET_LOADING,
+        loading: true
+    }
+}
+
+export const setLoadResponse = (res, successMsg, errorMsg, handleSuccess) => {
+    return (dispatch, getState) => {
+        let handleResponse = (result, status) => {
+            if(!status) {
+                status = res.status
+            }
+            dispatch(setLoadResult(status, result))
+
+            let errorMessage = ''
+            let successMessage = ''
+            if(status === 200) {
+                if(handleSuccess) {
+                    handleSuccess(result)
+                }
+            } else if(status === 401) {
+                errorMessage = '用户名或密码错误请重新输入'
+            } else if(status === 500) {
+                let exception = result.exception;
+                if(exception === EXCEPTION_EXPIRED_USER_IN_USE) {
+                    errorMessage = '用户已存在'
+                } else if(exception === EXCEPTION_EXPIRED_TOO_OFTEN || exception ===  EXCEPTION_EXPIRED_ZUUL) {
+                    errorMessage = result.message
+                } else if(exception === EXCEPTION_EXPIRED_JWT) {
+                    if(result.path.includes(PATH_NAME_REGIST)) {
+                        errorMessage = '链接超时失效请重新注册'
+                        setTimeout(() => {
+                            dispatch(hideAlert())
+                            location.pathname = `${minioBrowserPrefix}/${PATH_NAME_REGIST}`
+                        },5000)
+                    } else {
+                        errorMessage = '登录超时请重新登录'
+                        setTimeout(() => {
+                            dispatch(hideAlert())
+                            location.pathname = `${minioBrowserPrefix}/${PATH_NAME_LOGIN}`
+                        },5000)
+                    }
+
+                } else {
+                    errorMessage = '服务器错误'
+                }
+            } else if(status === 504) {
+                if(result) {
+                    errorMessage = result
+                } else {
+                    errorMessage = '服务器错误'
+                }
+
+            }
+
+
+            if(res.ok) {
+                if(successMsg === undefined) {
+                    successMessage = '成功'
+                } else {
+                    successMessage = successMsg
+                }
+                dispatch(setLoadingSuccess(successMessage))
+            } else {
+                if(errorMsg) {
+                    errorMessage = errorMsg
+                } else if(!errorMessage) {
+                    errorMessage = '失败'
+                }
+                dispatch(setLoadingError(errorMessage))
+            }
+        }
+
+        let resPromise
+        let content = res.headers.get("content-type");
+        if(!content) {
+        }else if(content.startsWith("application/json")) {
+            resPromise = res.json()
+        } else {
+            resPromise = res.text()
+        }
+        if(resPromise) {
+            resPromise.then(handleResponse)
+        } else {
+            handleResponse(null, res.status)
+        }
+
+    }
+}
+
+
+
+export const setLoadingSuccess = (message) => {
+    return (dispatch) => {
+
+        dispatch(showAlert({
+            type: 'success',
+            message: message
+        }))
+        dispatch(setLoadingOff())
+    }
+}
+
+
+export const setLoadingError = ( message) => {
+    return (dispatch) => {
+        dispatch(showAlert({
+            type: 'danger',
+            message: message
+        }))
+        dispatch(setLoadingOff())
+    }
+
+}
+
+export const setLoadingException = (e) => {
+    return (dispatch) => {
+        dispatch(showAlert({
+            type: 'danger',
+            message: e.message
+        }))
+        return {
+            type: SET_LOADING,
+            loading: false
+        }
+    }
+}
+
+export const setLoadingOff = () => {
+    return {
+        type: SET_LOADING,
+        loading: false
+    }
+}
+export const setLoadResult = (status, result) => {
+    return {
+        type: SET_LOAD_RESULT,
+        loadResponse: {
+            status: status,
+            result: result
+        }
+    }
+}
+
+
+export const setFromLab = () => {
+    return {
+        type: SET_FROM_LAB,
+        fromLab: true
+    }
+}
+
+export const setNotFromLab = () => {
+    return {
+        type: SET_FROM_LAB,
+        fromLab: false
     }
 }
