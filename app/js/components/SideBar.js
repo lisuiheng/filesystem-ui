@@ -47,16 +47,16 @@ let SideBar = ({visibleBuckets, loadBucket, currentBucket, selectBucket, searchB
                        }) }>
         <div className="fes-header clearfix hidden-sm hidden-xs">
           <img src={ logo } alt="" />
-          <h2>Minio Browser</h2>
+          <h2>文件服务器</h2>
         </div>
         <div className="fes-list">
-          <div className="input-group ig-dark ig-left ig-search" style={ { display: web.LoggedIn() ? 'block' : 'none' } }>
-            <input className="ig-text"
-              type="text"
-              onChange={ searchBuckets }
-              placeholder="Search Buckets..." />
-            <i className="ig-helpers"></i>
-          </div>
+          {/*<div className="input-group ig-dark ig-left ig-search" style={ { display: web.LoggedIn() ? 'block' : 'none' } }>*/}
+            {/*<input className="ig-text"*/}
+              {/*type="text"*/}
+              {/*onChange={ searchBuckets }*/}
+              {/*placeholder="Search Buckets..." />*/}
+            {/*<i className="ig-helpers"></i>*/}
+          {/*</div>*/}
           <div className="fesl-inner">
             <Scrollbars renderScrollbarVertical={ props => <div className="scrollbar-vertical" /> }>
               <ul>

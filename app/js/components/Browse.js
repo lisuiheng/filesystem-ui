@@ -556,9 +556,6 @@ export default class Browse extends React.Component {
                              <label htmlFor="file-input"> <i className="fa fa-cloud-upload"></i> </label>
                            </a>
                          </OverlayTrigger>
-                         <OverlayTrigger placement="left" overlay={ makeBucketTooltip }>
-                           <a href="#" className="feba-btn feba-bucket" onClick={ this.showMakeBucketModal.bind(this) }><i className="fa fa-hdd-o"></i></a>
-                         </OverlayTrigger>
                        </Dropdown.Menu>
                      </Dropdown>
         console.log(fromLab, currentBucket.ownerType)
@@ -595,14 +592,15 @@ export default class Browse extends React.Component {
           clickOutside={ this.hideSidebar.bind(this) }
           showPolicy={ this.showBucketPolicy.bind(this) } />
         <div className="fe-body">
-          <div className={ 'list-actions' + (classNames({
-                             ' list-actions-toggled': checkedObjects.length > 0
-                           })) }>
-            <span className="la-label"><i className="fa fa-check-circle" /> { checkedObjects.length } Objects selected</span>
-            <span className="la-actions pull-right"><button onClick={ this.downloadSelected.bind(this) }> Download all as zip </button></span>
-            <span className="la-actions pull-right"><button onClick={ this.showDeleteConfirmation.bind(this) }> Delete selected </button></span>
-            <i className="la-close fa fa-times" onClick={ this.clearSelected.bind(this) }></i>
-          </div>
+            {/*todo*/}
+          {/*<div className={ 'list-actions' + (classNames({*/}
+                             {/*' list-actions-toggled': checkedObjects.length > 0*/}
+                           {/*})) }>*/}
+            {/*<span className="la-label"><i className="fa fa-check-circle" /> { checkedObjects.length } Objects selected</span>*/}
+            {/*<span className="la-actions pull-right"><button onClick={ this.downloadSelected.bind(this) }> Download all as zip </button></span>*/}
+            {/*<span className="la-actions pull-right"><button onClick={ this.showDeleteConfirmation.bind(this) }> Delete selected </button></span>*/}
+            {/*<i className="la-close fa fa-times" onClick={ this.clearSelected.bind(this) }></i>*/}
+          {/*</div>*/}
           <Dropzone>
             { alertBox }
             <header className="fe-header-mobile hidden-lg hidden-md">
