@@ -50,6 +50,7 @@ let SideBar = ({visibleBuckets, loadBucket, currentBucket, selectBucket, searchB
           <h2>文件服务器</h2>
         </div>
         <div className="fes-list">
+            {/*TODO */}
           {/*<div className="input-group ig-dark ig-left ig-search" style={ { display: web.LoggedIn() ? 'block' : 'none' } }>*/}
             {/*<input className="ig-text"*/}
               {/*type="text"*/}
