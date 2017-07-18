@@ -27,9 +27,6 @@ export const SET_WEB = 'SET_WEB'
 export const SET_CURRENT_EQUIPMENT = 'SET_CURRENT_EQUIPMENT'
 export const SET_CURRENT_LAB = 'SET_CURRENT_LAB'
 export const SET_CURRENT_PATH = 'SET_CURRENT_PATH'
-export const SET_BUCKETS = 'SET_BUCKETS'
-export const ADD_BUCKET = 'ADD_BUCKET'
-export const SET_VISIBLE_BUCKETS = 'SET_VISIBLE_BUCKETS'
 export const SET_OBJECTS = 'SET_OBJECTS'
 export const APPEND_OBJECTS = 'APPEND_OBJECTS'
 export const RESET_OBJECTS = 'RESET_OBJECTS'
@@ -52,8 +49,6 @@ export const SET_LOAD_EQUIPMEN = 'SET_LOAD_EQUIPMEN'
 export const SET_LOAD_PATH = 'SET_LOAD_PATH'
 export const SHOW_SETTINGS = 'SHOW_SETTINGS'
 export const SET_SETTINGS = 'SET_SETTINGS'
-export const SHOW_BUCKET_POLICY = 'SHOW_BUCKET_POLICY'
-export const SET_POLICIES = 'SET_POLICIES'
 export const SET_SHARE_OBJECT = 'SET_SHARE_OBJECT'
 export const DELETE_CONFIRMATION = 'DELETE_CONFIRMATION'
 export const SET_PREFIX_WRITABLE = 'SET_PREFIX_WRITABLE'
@@ -191,20 +186,6 @@ export const setWeb = web => {
   return {
     type: SET_WEB,
     web
-  }
-}
-
-export const setBuckets = buckets => {
-  return {
-    type: SET_BUCKETS,
-    buckets
-  }
-}
-
-export const addBucket = bucket => {
-  return {
-    type: ADD_BUCKET,
-    bucket
   }
 }
 
@@ -723,26 +704,6 @@ export const setSettings = (settings) => {
   }
 }
 
-export const showBucketPolicy = () => {
-  return {
-    type: SHOW_BUCKET_POLICY,
-    showBucketPolicy: true
-  }
-}
-
-export const hideBucketPolicy = () => {
-  return {
-    type: SHOW_BUCKET_POLICY,
-    showBucketPolicy: false
-  }
-}
-
-export const setPolicies = (policies) => {
-  return {
-    type: SET_POLICIES,
-    policies
-  }
-}
 
 export const checkedObjectsAdd = (object) => {
   return {
@@ -1003,7 +964,6 @@ export const selectEquipment = equipment => {
     return (dispatch, getState) => {
         const { labMenu, currentEquipment, web } = getState();
         if(currentEquipment !== equipment) {
-            console.log("setCurrentEquipment")
             dispatch(setCurrentEquipment(equipment))
 
             // let getLabById = (lab) => {
@@ -1038,9 +998,11 @@ export const selectEquipment = equipment => {
                     objects = objects.map(object => {
                         web.GetUser(object.createOper).then(res => {
                             let returnUser = user => {
-                                object.createOperName = user.name;
-                                object.createOperUsername = user.username;
-                                return object
+                                if(user) {
+                                    object.createOperName = user.name;
+                                    object.createOperUsername = user.username;
+                                    return object
+                                }
                             }
                             dispatch(setLoadResponse(res, '', null, returnUser))
                         })

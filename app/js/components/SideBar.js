@@ -22,9 +22,8 @@ import Scrollbars from 'react-custom-scrollbars/lib/Scrollbars'
 import connect from 'react-redux/lib/components/connect'
 import logo from '../../img/logo.png'
 
-let SideBar = ({visibleBuckets, dispatch, selectEquipment, selectLab, loadBucket, currentEquipment, web, buckets, searchBuckets, sidebarStatus, clickOutside, showPolicy, labMenu}) => {
+let SideBar = ({dispatch, selectEquipment, selectLab, currentEquipment, web, searchBuckets, sidebarStatus, clickOutside, labMenu}) => {
 
-    console.log(web.LoginUser())
     const helloUser = <div className="fes-host">
                             <h3 href="/">
                                 {web.LoginUser().name},欢迎您!

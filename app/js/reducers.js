@@ -18,8 +18,6 @@ import * as actions from './actions'
 import { minioBrowserPrefix } from './constants'
 
 export default (state = {
-    buckets: [],
-    visibleBuckets: [],
     objects: [],
     istruncated: true,
     storageInfo: {},
@@ -46,7 +44,6 @@ export default (state = {
       secretKeyVisible: false
     },
     showSettings: false,
-    policies: [],
     deleteConfirmation: {
       object: '',
       show: false
@@ -80,16 +77,6 @@ export default (state = {
   switch (action.type) {
     case actions.SET_WEB:
       newState.web = action.web
-      break
-    case actions.SET_BUCKETS:
-      newState.buckets = action.buckets
-      break
-    case actions.ADD_BUCKET:
-      newState.buckets = [action.bucket, ...newState.buckets]
-      newState.visibleBuckets = [action.bucket, ...newState.visibleBuckets]
-      break
-    case actions.SET_VISIBLE_BUCKETS:
-      newState.visibleBuckets = action.visibleBuckets
       break
     case actions.SET_CURRENT_EQUIPMENT:
       newState.currentEquipment = action.currentEquipment
@@ -187,12 +174,6 @@ export default (state = {
       break
     case actions.SET_SETTINGS:
       newState.settings = Object.assign({}, newState.settings, action.settings)
-      break
-    case actions.SHOW_BUCKET_POLICY:
-      newState.showBucketPolicy = action.showBucketPolicy
-      break
-    case actions.SET_POLICIES:
-      newState.policies = action.policies
       break
     case actions.DELETE_CONFIRMATION:
       newState.deleteConfirmation = Object.assign({}, action.payload)

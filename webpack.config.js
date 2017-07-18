@@ -61,15 +61,15 @@ var exports = {
     },
     proxy: {
       '/manager': {
-	target: 'http://localhost:81',
+	target: 'http://localhost:8081',
 	secure: false
       },
       '/zuul': {
-	target: 'http://localhost:81',
+	target: 'http://localhost:8081',
 	secure: false
       },
     '/download': {
-	target: 'http://localhost:81',
+	target: 'http://localhost:8081',
 	secure: false
       },
    //    '/minio/download/*': {

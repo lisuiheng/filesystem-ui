@@ -46,7 +46,6 @@ async.waterfall([
       if (!isProduction) {
         cmd = 'webpack';
       }
-      console.log('Running', cmd)
       exec(cmd, cb)
     },
   ], function(err) {

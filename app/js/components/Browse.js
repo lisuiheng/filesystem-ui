@@ -35,8 +35,6 @@ import Path from '../components/Path'
 import BrowserUpdate from '../components/BrowserUpdate'
 import UploadModal from '../components/UploadModal'
 import SettingsModal from '../components/SettingsModal'
-import PolicyInput from '../components/PolicyInput'
-import Policy from '../components/Policy'
 import BrowserDropdown from '../components/BrowserDropdown'
 import ConfirmModal from './ConfirmModal'
 import logo from '../../img/logo.png'
@@ -167,8 +165,11 @@ export default class Browse extends React.Component {
     e.preventDefault()
     const {dispatch, currentPath, web, currentEquipment, objects, fromLab} = this.props
     const encPrefix = encodeURI(prefix)
-    console.log("selectPrefix")
     if(fromLab) {
+        dispatch(actions.showAlert({
+            type: 'info',
+            message: '实验室内不允许下载'
+        }))
         return
     }
     if (prefix.endsWith('/') || prefix === '') {
@@ -234,17 +235,7 @@ export default class Browse extends React.Component {
     dispatch(actions.hideAbout())
   }
 
-  showBucketPolicy(e) {
-    e.preventDefault()
-    const {dispatch} = this.props
-    dispatch(actions.showBucketPolicy())
-  }
 
-  hideBucketPolicy(e) {
-    e.preventDefault()
-    const {dispatch} = this.props
-    dispatch(actions.hideBucketPolicy())
-  }
 
   uploadFile(e) {
     e.preventDefault()
@@ -470,7 +461,7 @@ export default class Browse extends React.Component {
 
   render() {
     const {total, free} = this.props.storageInfo
-    const {showMakeBucketModal, alert, sortNameOrder, sortSizeOrder, sortDateOrder, showAbout, showBucketPolicy, checkedObjects, fromLab} = this.props
+    const {showMakeBucketModal, alert, sortNameOrder, sortSizeOrder, sortDateOrder, showAbout, checkedObjects, fromLab} = this.props
     const {version, memory, platform, runtime} = this.props.serverInfo
     const {sidebarStatus} = this.props
     const {showSettings} = this.props
@@ -610,7 +601,6 @@ export default class Browse extends React.Component {
           selectEquipment={ this.selectEquipment.bind(this) }
           selectLab={ this.selectLab.bind(this) }
           clickOutside={ this.hideSidebar.bind(this) }
-          showPolicy={ this.showBucketPolicy.bind(this) }
         />
         <div className="fe-body">
             {/*todo*/}
@@ -759,23 +749,6 @@ export default class Browse extends React.Component {
                     </li>
                   </ul>
                 </div>
-              </div>
-            </Modal>
-            <Modal className="modal-policy"
-              animation={ false }
-              show={ showBucketPolicy }
-              onHide={ this.hideBucketPolicy.bind(this) }>
-              <ModalHeader>
-                Bucket Policy (
-                { currentEquipment })
-                <button className="close close-alt" onClick={ this.hideBucketPolicy.bind(this) }>
-                  <span>×</span>
-                </button>
-              </ModalHeader>
-              <div className="pm-body">
-                <PolicyInput bucket={ currentEquipment } />
-                { policies.map((policy, i) => <Policy key={ i } prefix={ policy.prefix } policy={ policy.policy } />
-                  ) }
               </div>
             </Modal>
             <ConfirmModal show={ deleteConfirmation.show }
