@@ -156,10 +156,6 @@ export default class Browse extends React.Component {
     this.props.dispatch(actions.setVisibleBuckets(buckets.filter(bucket => bucket.indexOf(e.target.value) > -1)))
   }
 
-  listObjects() {
-    const {dispatch} = this.props
-    // dispatch(actions.listObjects())
-  }
 
   selectPrefix(e, prefix) {
     e.preventDefault()
@@ -672,7 +668,7 @@ export default class Browse extends React.Component {
               </header>
             </div>
             <div className="feb-container">
-              <InfiniteScroll loadMore={ this.listObjects.bind(this) }
+              <InfiniteScroll
                 hasMore={ istruncated }
                 useWindow={ true }
                 initialLoad={ false }>
@@ -683,9 +679,9 @@ export default class Browse extends React.Component {
                   checkObject={ this.checkObject.bind(this) }
                   checkedObjectsArray={ checkedObjects } />
               </InfiniteScroll>
-              <div className="text-center" style={ { display: (istruncated && currentEquipment) ? 'block' : 'none' } }>
-                <span>Loading...</span>
-              </div>
+              {/*<div className="text-center" style={ { display: (istruncated && currentEquipment) ? 'block' : 'none' } }>*/}
+                {/*<span>Loading...</span>*/}
+              {/*</div>*/}
             </div>
             <UploadModal />
             { createButton }
