@@ -810,6 +810,7 @@ export const setLoading = () => {
 export const setLoadResponse = (res, successMsg, errorMsg, handleSuccess) => {
     return (dispatch, getState) => {
         let handleResponse = (result, status) => {
+            const { web } = getState()
             if(!status) {
                 status = res.status
             }
@@ -833,6 +834,7 @@ export const setLoadResponse = (res, successMsg, errorMsg, handleSuccess) => {
                         errorMessage = '链接超时失效请重新注册'
                         setTimeout(() => {
                             dispatch(hideAlert())
+                            web.Logout()
                             location.pathname = `${minioBrowserPrefix}/${PATH_NAME_REGIST}`
                         },5000)
                     } else {
