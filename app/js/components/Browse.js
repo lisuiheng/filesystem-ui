@@ -160,7 +160,7 @@ export default class Browse extends React.Component {
 
   listObjects() {
     const {dispatch} = this.props
-    dispatch(actions.listObjects())
+    // dispatch(actions.listObjects())
   }
 
   selectPrefix(e, prefix) {
