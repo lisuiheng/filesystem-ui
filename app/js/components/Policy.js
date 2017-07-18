@@ -21,11 +21,11 @@ class Policy extends Component {
 
   removePolicy(e) {
     e.preventDefault()
-    const {dispatch, currentBucket, prefix} = this.props
-    let newPrefix = prefix.replace(currentBucket + '/', '')
+    const {dispatch, currentEquipment, prefix} = this.props
+    let newPrefix = prefix.replace(currentEquipment + '/', '')
     newPrefix = newPrefix.replace('*', '')
     web.SetBucketPolicy({
-      bucketName: currentBucket,
+      bucketName: currentEquipment,
       prefix: newPrefix,
       policy: 'none'
     })
@@ -39,8 +39,8 @@ class Policy extends Component {
   }
 
   render() {
-    const {policy, prefix, currentBucket} = this.props
-    let newPrefix = prefix.replace(currentBucket + '/', '')
+    const {policy, prefix, currentEquipment} = this.props
+    let newPrefix = prefix.replace(currentEquipment + '/', '')
     newPrefix = newPrefix.replace('*', '')
 
     if (!newPrefix)

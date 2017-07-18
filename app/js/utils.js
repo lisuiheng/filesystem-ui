@@ -56,29 +56,38 @@ export const sortObjectsByDate = (objects, order) => {
 
 export const pathSlice = (path) => {
   path = path.replace(minioBrowserPrefix, '')
-  let prefix = ''
   let bucketName = ''
-  if (!path) return {
-      bucketName,
-      prefix
-  }
+  if (!path) return bucketName
+
   let objectIndex = path.indexOf('/', 1)
-  if (objectIndex == -1) {
+  if (objectIndex === -1) {
     bucketName = path.slice(1)
-    return {
-      bucketName,
-      prefix
-    }
+    return bucketName
+
   }
   bucketName = path.slice(1, objectIndex)
-  prefix = path.slice(objectIndex + 1)
-  return {
-    bucketName,
-    prefix
-  }
+  return bucketName
+
 }
 
 export const pathJoin = (path) => {
   return minioBrowserPrefix + '/' + path
 }
 
+
+export const pathJoinLab = (path) => {
+    return minioBrowserPrefix + '/' + path
+}
+export const pathJoinEquipment = (path) => {
+    let decPathname = decodeURI(location.pathname)
+    if (!decPathname.endsWith('/'))
+        decPathname += '/'
+    let count = (decPathname.match(/\//g) || []).length;
+    if(count === 3) {
+        decPathname = decPathname.replace(/\/\S?\/$/, path)
+        return minioBrowserPrefix + decPathname
+    } else {
+        return minioBrowserPrefix + decPathname + path
+    }
+
+}

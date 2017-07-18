@@ -20,7 +20,7 @@ import humanize from 'humanize'
 import connect from 'react-redux/lib/components/connect'
 import Dropdown from 'react-bootstrap/lib/Dropdown'
 
-let ObjectsList = ({objects, currentPath, selectPrefix, dataType, showDeleteConfirmation, shareObject, loadPath, checkObject, checkedObjectsArray}) => {
+let ObjectsList = ({web, objects, currentPath, selectPrefix, dataType, showDeleteConfirmation, shareObject, loadPath, checkObject, checkedObjectsArray}) => {
   const list = objects.map((object, i) => {
     let size = object.name.endsWith('/') ? '-' : humanize.filesize(object.size)
     let lastModified = object.name.endsWith('/') ? '-' : Moment(object.lastModified).format('lll')
@@ -50,6 +50,25 @@ let ObjectsList = ({objects, currentPath, selectPrefix, dataType, showDeleteConf
       isChecked = true
     }
 
+    let createOperDiv = ''
+    if(web.LoginUser().roles[0] === "ADMIN") {
+        // web.GetUser(object.createOper).then(res => {
+        //     if(res.headers.get("content-type").startsWith("application/json")) {
+        //         res.json().then(user => {
+        //             console.log(user)
+        //             createOperDiv = <div className="fesl-item fesl-create-oper">
+        //                 { user.createOperName }
+        //             </div>
+        //         })
+        //     }
+        // })
+
+        createOperDiv = <div className="fesl-item fesl-create-oper">
+            { object.createOperName }({ object.createOperUsername}
+        </div>
+
+    }
+
     return (
       <div key={ i } className={ "fesl-row " + loadingClass + activeClass } data-type={ dataType(object.name, object.contentType) }>
         <div className="fesl-item fesl-item-icon">
@@ -67,6 +86,7 @@ let ObjectsList = ({objects, currentPath, selectPrefix, dataType, showDeleteConf
             { object.name }
           </a>
         </div>
+          { createOperDiv }
         <div className="fesl-item fesl-item-size">
           { size }
         </div>
@@ -89,6 +109,7 @@ let ObjectsList = ({objects, currentPath, selectPrefix, dataType, showDeleteConf
 // Subscribe it to state changes.
 export default connect(state => {
   return {
+    web: state.web,
     objects: state.objects,
     currentPath: state.currentPath,
     loadPath: state.loadPath

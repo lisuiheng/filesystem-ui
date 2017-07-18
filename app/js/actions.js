@@ -16,6 +16,7 @@
 
 import Moment from 'moment'
 import browserHistory from 'react-router/lib/browserHistory'
+import * as utils from './utils'
 import storage from 'local-storage-fallback'
 import {
     minioBrowserPrefix, EXCEPTION_EXPIRED_USER_IN_USE, EXCEPTION_EXPIRED_TOO_OFTEN,
@@ -23,7 +24,8 @@ import {
 } from './constants'
 
 export const SET_WEB = 'SET_WEB'
-export const SET_CURRENT_BUCKET = 'SET_CURRENT_BUCKET'
+export const SET_CURRENT_EQUIPMENT = 'SET_CURRENT_EQUIPMENT'
+export const SET_CURRENT_LAB = 'SET_CURRENT_LAB'
 export const SET_CURRENT_PATH = 'SET_CURRENT_PATH'
 export const SET_BUCKETS = 'SET_BUCKETS'
 export const ADD_BUCKET = 'ADD_BUCKET'
@@ -46,7 +48,7 @@ export const SET_SORT_DATE_ORDER = 'SET_SORT_DATE_ORDER'
 export const SET_LATEST_UI_VERSION = 'SET_LATEST_UI_VERSION'
 export const SET_SIDEBAR_STATUS = 'SET_SIDEBAR_STATUS'
 export const SET_LOGIN_REDIRECT_PATH = 'SET_LOGIN_REDIRECT_PATH'
-export const SET_LOAD_BUCKET = 'SET_LOAD_BUCKET'
+export const SET_LOAD_EQUIPMEN = 'SET_LOAD_EQUIPMEN'
 export const SET_LOAD_PATH = 'SET_LOAD_PATH'
 export const SHOW_SETTINGS = 'SHOW_SETTINGS'
 export const SET_SETTINGS = 'SET_SETTINGS'
@@ -68,6 +70,7 @@ export const SET_LOGIN_USERNAME = 'SET_LOGIN_USERNAME'
 export const SET_LOADING = 'SET_LOADING'
 export const SET_LOAD_RESULT = 'SET_LOAD_RESULT'
 export const SET_FROM_LAB = 'SET_FROM_LAB'
+export const SET_LAB_MENU = 'SET_LAB_MENU'
 
 
 export const showDeleteConfirmation = (object) => {
@@ -132,9 +135,9 @@ export const hideShareObject = () => {
 }
 
 export const shareObject = (object, days, hours, minutes) => (dispatch, getState) => {
-  const {currentBucket, web} = getState()
+  const {currentEquipment, web} = getState()
   let host = location.host
-  let bucket = currentBucket
+  let bucket = currentEquipment
 
   if (!web.LoggedIn()) {
     dispatch(showShareObject(object, `${host}/${bucket}/${object}`))
@@ -177,10 +180,10 @@ export const setLoadPath = (loadPath) => {
   }
 }
 
-export const setLoadBucket = (loadBucket) => {
+export const setLoadEquipmen = (loadEquipmen) => {
   return {
-    type: SET_LOAD_BUCKET,
-    loadBucket
+    type: SET_LOAD_EQUIPMEN,
+    loadEquipmen: loadEquipmen
   }
 }
 
@@ -296,10 +299,17 @@ export const resetObjects = () => {
   }
 }
 
-export const setCurrentBucket = currentBucket => {
+export const setCurrentEquipment = currentEquipment => {
   return {
-    type: SET_CURRENT_BUCKET,
-    currentBucket
+    type: SET_CURRENT_EQUIPMENT,
+    currentEquipment
+  }
+}
+
+export const setCurrentLab = currentLab => {
+  return {
+    type: SET_CURRENT_LAB,
+    currentLab
   }
 }
 
@@ -331,46 +341,86 @@ const setPrefixWritable = prefixWritable => {
   }
 }
 
-export const selectBucketByName = (newCurrentBucketName, prefix) => {
+export const selectBucketByName = (newCurrentBucketName) => {
     return (dispatch, getState) => {
         let buckets = getState().buckets
         let newCurrentBuckets = buckets.filter(bucket => {return bucket.name == newCurrentBucketName});
         if (newCurrentBuckets.length) {
-            dispatch(selectBucket(newCurrentBuckets[0], prefix))
+            dispatch(selectEquipment(newCurrentBuckets[0]))
         }
         return
     }
 
 }
 
-export const selectBucket = (newCurrentBucket, prefix) => {
-  if (!prefix)
-    prefix = ''
-  return (dispatch, getState) => {
-    let web = getState().web
-    let currentBucket = getState().currentBucket
+export const selectEquipment1 = (newCurrentEquipment) => {
 
-    if (currentBucket !== newCurrentBucket) dispatch(setLoadBucket(newCurrentBucket))
-    dispatch(setCurrentBucket(newCurrentBucket))
-    dispatch(selectPrefix(prefix))
-    let storageInfo = Object.assign({}, {
-      total: newCurrentBucket.total,
-      used: newCurrentBucket.used,
-      free: newCurrentBucket.total - newCurrentBucket.used
+  return (dispatch, getState) => {
+    let {currentEquipment, web} = getState()
+
+    if (currentEquipment !== newCurrentEquipment) dispatch(setLoadEquipmen(newCurrentEquipment))
+    dispatch(setCurrentEquipment(newCurrentEquipment))
+
+    //loadObject
+    dispatch(resetObjects())
+    dispatch(setLoadPath(prefix))
+
+    dispatch(refreshStorageInfo())
+
+    web.ListObjects({
+      ownerType: "EQUIPMENT",
+      ownerId: currentEquipment.id
+    }).then((res) => {
+      if(res.headers.get("lab")) {
+          dispatch(setFromLab())
+      } else {
+          dispatch(setNotFromLab())
+      }
+
+
+
+      let listObjects = (objects) => {
+          if (!objects)
+              objects = []
+          objects = objects.map(object => {
+              object.name = object.name.replace(`${prefix}`, '');
+
+              web.GetUser(object.createOper).then(res => {
+                  let returnUser = user => {
+                      object.createOperName = user.name;
+                      return object
+                  }
+                  dispatch(setLoadResponse(res, '', null, returnUser))
+              })
+              return object
+          })
+          dispatch(appendObjects(
+              objects,
+              res.nextmarker,
+              res.istruncated
+          ))
+          dispatch(setPrefixWritable(res.writable))
+          dispatch(setSortNameOrder(false))
+          dispatch(setCurrentPath(prefix))
+          dispatch(setLoadEquipmen(''))
+          dispatch(setLoadPath(''))
+      }
+      dispatch(setLoadResponse(res, null, null, listObjects))
+
+    }).catch(e => {
+      dispatch(setLoadingError(e))
     })
-      console.log(newCurrentBucket)
-    dispatch(setStorageInfo(storageInfo))
     return
   }
 }
 
 export const listObjects = () => {
   return (dispatch, getState) => {
-    const {currentBucket, currentPath, marker, objects, istruncated, web} = getState()
+    const {currentEquipment, currentPath, marker, objects, istruncated, web} = getState()
     if (!istruncated) return
     web.ListObjects({
-        ownerType: currentBucket.ownerType,
-        ownerId: currentBucket.ownerId
+        ownerType: "EQUIPMENT",
+        ownerId: currentEquipment.id
     }).then((res) => {
         if(res.headers.get("lab")) {
             dispatch(setFromLab())
@@ -383,11 +433,11 @@ export const listObjects = () => {
                 objects = []
             objects = objects.map(object => {
                 object.name = object.name.replace(`${currentPath}`, '');
-                return object
+
             })
             dispatch(appendObjects(objects, res.nextmarker, res.istruncated))
             dispatch(setPrefixWritable(res.writable))
-            dispatch(setLoadBucket(''))
+            dispatch(setLoadEquipmen(''))
             dispatch(setLoadPath(''))
         }
         dispatch(setLoadResponse(res, null, null, listBuckets))
@@ -401,12 +451,15 @@ export const listObjects = () => {
 
 export const selectPrefix = prefix => {
   return (dispatch, getState) => {
-    const {currentBucket, web} = getState()
+    const {currentEquipment, web} = getState()
     dispatch(resetObjects())
     dispatch(setLoadPath(prefix))
-    web.ListObjects({
-        ownerType: currentBucket.ownerType,
-        ownerId: currentBucket.ownerId
+
+    dispatch(refreshStorageInfo())
+
+      web.ListObjects({
+        ownerType: "EQUIPMENT",
+        ownerId: currentEquipment.id
     }).then((res) => {
         if(res.headers.get("lab")) {
             dispatch(setFromLab())
@@ -414,11 +467,21 @@ export const selectPrefix = prefix => {
             dispatch(setNotFromLab())
         }
 
-        let listBuckets = (objects) => {
+
+
+        let listObjects = (objects) => {
             if (!objects)
                 objects = []
             objects = objects.map(object => {
                 object.name = object.name.replace(`${prefix}`, '');
+
+                web.GetUser(object.createOper).then(res => {
+                    let returnUser = user => {
+                        object.createOperName = user.name;
+                        return object
+                    }
+                    dispatch(setLoadResponse(res, '', null, returnUser))
+                })
                 return object
             })
             dispatch(appendObjects(
@@ -429,15 +492,32 @@ export const selectPrefix = prefix => {
             dispatch(setPrefixWritable(res.writable))
             dispatch(setSortNameOrder(false))
             dispatch(setCurrentPath(prefix))
-            dispatch(setLoadBucket(''))
+            dispatch(setLoadEquipmen(''))
             dispatch(setLoadPath(''))
         }
-        dispatch(setLoadResponse(res, null, null, listBuckets))
+        dispatch(setLoadResponse(res, null, null, listObjects))
 
     }).catch(e => {
         dispatch(setLoadingError(e))
     })
   }
+}
+
+export const refreshStorageInfo = () => {
+    return (dispatch, getState) => {
+        const {web} = getState()
+        web.GetUser(web.LoginUser().id).then(res => {
+            let refresh =  currentUser => {
+                dispatch(setStorageInfo(Object.assign({}, {
+                    total: currentUser.total,
+                    free: currentUser.total - currentUser.used
+                })))
+
+            }
+            dispatch(setLoadResponse(res, '', null, refresh))
+        })
+    }
+
 }
 
 export const addUpload = options => {
@@ -476,7 +556,7 @@ export const setShowAbortModal = showAbortModal => {
 
 export const downloadSelected = (url, req, xhr) => {
   return (dispatch) => {
-    var anchor = document.createElement('a')
+    let anchor = document.createElement('a')
     document.body.appendChild(anchor);
     xhr.open('POST', url, true)
     xhr.responseType = 'blob'
@@ -484,17 +564,14 @@ export const downloadSelected = (url, req, xhr) => {
     xhr.onload = function(e) {
       if (this.status == 200) {
         dispatch(checkedObjectsReset())
-        var blob = new Blob([this.response], {
+        let blob = new Blob([this.response], {
           type: 'octet/stream'
         })
-        var blobUrl = window.URL.createObjectURL(blob);
-        var separator = req.prefix.length > 1 ? '-' : ''
+        let blobUrl = window.URL.createObjectURL(blob);
+        let separator = req.prefix.length > 1 ? '-' : ''
 
         anchor.href = blobUrl
         anchor.download = req.bucketName+separator+req.prefix.slice(0, -1)+'.zip';
-
-
-
 
         anchor.click()
         window.URL.revokeObjectURL(blobUrl)
@@ -507,12 +584,12 @@ export const downloadSelected = (url, req, xhr) => {
 
 export const uploadFile = (file, xhr) => {
   return (dispatch, getState) => {
-    const {currentBucket, currentPath} = getState()
-    // const uploadUrl = `${window.location.origin}/minio/upload/${currentBucket.ownerType}/${currentBucket.ownerId}`
-    const uploadUrl = `${window.location.origin}/zuul/storage/submit?ownerType=${currentBucket.ownerType}&ownerId=${currentBucket.ownerId}`
+    const {currentEquipment, currentPath, storageInfo} = getState()
+    // const uploadUrl = `${window.location.origin}/minio/upload/${currentEquipment.ownerType}/${currentEquipment.ownerId}`
+    const uploadUrl = `${window.location.origin}/zuul/storage/submit?ownerType=EQUIPMENT&ownerId=${currentEquipment.id}`
     // const uploadUrl = `${window.location.origin}/zuul/storage/submit`
     // The slug is a unique identifer for the file upload.
-    const slug = `${currentBucket}-${currentPath}-${file.name}`
+    const slug = `${currentEquipment}-${currentPath}-${file.name}`
 
     xhr.open('POST', uploadUrl, true)
     xhr.withCredentials = false
@@ -539,6 +616,10 @@ export const uploadFile = (file, xhr) => {
       }
       if (xhr.status == 200 || xhr.status === 201) {
         setShowAbortModal(false)
+        dispatch(setStorageInfo(Object.assign({}, {
+            total: storageInfo.total,
+            free: storageInfo.total - file.size
+        })))
         dispatch(stopUpload({
           slug
         }))
@@ -575,7 +656,6 @@ export const uploadFile = (file, xhr) => {
     let formData = new FormData();
     formData.append("file", file);
     xhr.overrideMimeType("text/plain; charset=utf-8");
-    console.log(file)
     xhr.send(formData)
   }
 }
@@ -733,7 +813,6 @@ export const setLoadResponse = (res, successMsg, errorMsg, handleSuccess) => {
             if(!status) {
                 status = res.status
             }
-            dispatch(setLoadResult(status, result))
 
             let errorMessage = ''
             let successMessage = ''
@@ -803,6 +882,7 @@ export const setLoadResponse = (res, successMsg, errorMsg, handleSuccess) => {
             resPromise = res.text()
         }
         if(resPromise) {
+
             resPromise.then(handleResponse)
         } else {
             handleResponse(null, res.status)
@@ -810,6 +890,8 @@ export const setLoadResponse = (res, successMsg, errorMsg, handleSuccess) => {
 
     }
 }
+
+
 
 
 
@@ -879,3 +961,136 @@ export const setNotFromLab = () => {
         fromLab: false
     }
 }
+
+
+export const setLabMenu = labMenu => {
+    return {
+        type: SET_LAB_MENU,
+        labMenu
+    }
+}
+
+export const setLabs = labs => {
+    return (dispatch) => {
+        let labMenu = []
+        for (let lab of labs) {
+            labMenu.push({
+                lab: lab,
+                equipments: [],
+                close: true
+            })
+        }
+        dispatch(setLabMenu(labMenu))
+    }
+
+}
+
+export const setEquipments = (labId, equipments) => {
+    return (dispatch, getState) => {
+        let labMenu = getState().labMenu;
+        for (let labNode of labMenu) {
+            if(labNode.lab.id === labId) {
+                labNode.equipments = equipments
+            }
+        }
+        dispatch(setLabMenu(labMenu))
+    }
+}
+
+export const selectEquipment = equipment => {
+    return (dispatch, getState) => {
+        const { labMenu, currentEquipment, web } = getState();
+        if(currentEquipment !== equipment) {
+            console.log("setCurrentEquipment")
+            dispatch(setCurrentEquipment(equipment))
+
+            // let getLabById = (lab) => {
+            //     console.log("selectLab", lab)
+            //     dispatch(selectLab(lab))
+            // }
+            // console.log(equipment)
+            // web.GetLabById(equipment.labId).then((res => {
+            //     dispatch(setLoadResponse(res, null, null, getLabById))
+            // }))
+
+            //loadObject
+            dispatch(resetObjects())
+
+            dispatch(refreshStorageInfo())
+
+            web.ListObjects({
+                ownerType: "EQUIPMENT",
+                ownerId: equipment.id
+            }).then((res) => {
+                if(res.headers.get("lab")) {
+                    dispatch(setFromLab())
+                } else {
+                    dispatch(setNotFromLab())
+                }
+
+
+
+                let listObjects = (objects) => {
+                    if (!objects)
+                        objects = []
+                    objects = objects.map(object => {
+                        web.GetUser(object.createOper).then(res => {
+                            let returnUser = user => {
+                                object.createOperName = user.name;
+                                object.createOperUsername = user.username;
+                                return object
+                            }
+                            dispatch(setLoadResponse(res, '', null, returnUser))
+                        })
+                        return object
+                    })
+                    dispatch(appendObjects(
+                        objects,
+                        res.nextmarker,
+                        res.istruncated
+                    ))
+                    dispatch(setPrefixWritable(res.writable))
+                    dispatch(setSortNameOrder(false))
+                    dispatch(setLoadEquipmen(''))
+                    dispatch(setLoadPath(''))
+                }
+                dispatch(setLoadResponse(res, null, null, listObjects))
+
+            }).catch(e => {
+                dispatch(setLoadingError(e))
+            })
+        }
+    }
+}
+
+export const selectLab = selectLab => {
+
+    return (dispatch, getState) => {
+        const { labMenu, currentLab, web } = getState();
+        if(!currentLab ||  selectLab.id !== currentLab.id) {
+            dispatch(setCurrentLab(selectLab))
+        }
+
+
+
+        for (let labNode of labMenu) {
+            let lab = labNode.lab;
+            if(lab.id === selectLab.id) {
+                labNode.close = !labNode.close
+                lab = selectLab
+                if(!lab.equipments) {
+                    let listEquipments = (equipments) => {
+                        dispatch(setEquipments(lab.id, equipments))
+                    }
+                    web.ListEquipments(lab.id).then((res => {
+                        dispatch(setLoadResponse(res, null, null, listEquipments))
+                    }))
+                }
+            }
+        }
+        dispatch(setLabMenu(labMenu))
+
+
+    }
+}
+

@@ -9,7 +9,7 @@ class PolicyInput extends Component {
     const {web, dispatch} = this.props
     this.prefix.focus()
     web.ListAllBucketPolicies({
-      bucketName: this.props.currentBucket
+      bucketName: this.props.currentEquipment
     }).then(res => {
       let policies = res.policies
       if (policies) dispatch(actions.setPolicies(policies))
@@ -28,13 +28,13 @@ class PolicyInput extends Component {
 
   handlePolicySubmit(e) {
     e.preventDefault()
-    const {web, dispatch, currentBucket} = this.props
+    const {web, dispatch, currentEquipment} = this.props
 
-    let prefix = currentBucket + '/' + this.prefix.value
+    let prefix = currentEquipment + '/' + this.prefix.value
     let policy = this.policy.value
 
     if (!prefix.endsWith('*')) prefix = prefix + '*'
- 
+
     let prefixAlreadyExists = this.props.policies.some(elem => prefix === elem.prefix)
 
     if (prefixAlreadyExists) {
@@ -44,9 +44,9 @@ class PolicyInput extends Component {
       }))
       return
     }
-    
+
     web.SetBucketPolicy({
-      bucketName: this.props.currentBucket,
+      bucketName: this.props.currentEquipment,
       prefix: this.prefix.value,
       policy: this.policy.value
     })

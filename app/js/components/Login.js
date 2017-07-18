@@ -15,7 +15,7 @@
  */
 
 import React from 'react'
-import logo from '../../img/logo.svg'
+import logo from '../../img/logo.png'
 import Alert from 'react-bootstrap/lib/Alert'
 import browserHistory from 'react-router/lib/browserHistory'
 import * as actions from '../actions'
@@ -55,6 +55,8 @@ export default class Login extends React.Component {
             password: password
         }).then((res) => {
             dispatch(actions.setLoadResponse(res))
+
+
             this.context.router.push(loginRedirectPath)
         }).catch(e => {
             dispatch(actions.setLoadingError(e))
@@ -62,8 +64,19 @@ export default class Login extends React.Component {
     }
 
     if(showRegister) {
+        let confirmPassword = document.getElementById('confirmPassword').value
+        if (password !== confirmPassword) {
+            dispatch(actions.showAlert({
+                type: 'warning',
+                message: '两次输入密码不一致'
+            }))
+            return
+        }
+        let name = document.getElementById('name').value
+
         dispatch(actions.setLoading())
         web.Regist({
+            name: name,
             username: username,
             password: password
         }).then((res) => {
@@ -171,7 +184,7 @@ export default class Login extends React.Component {
       alertBox = ''
 
     let usernameInput =  <InputGroup className="ig-dark"
-                                     label="用户名"
+                                     label="邮箱"
                                      id="username"
                                      name="username"
                                      // value="lisuiheng@163.com"
@@ -181,6 +194,16 @@ export default class Login extends React.Component {
                                      onChange={ this.changeUsername.bind(this) }
                                      autoComplete="username">
                           </InputGroup>
+
+    let nameInput =  <InputGroup className="ig-dark"
+                                   label="昵称"
+                                   id="name"
+                                   name="name"
+                                   type="text"
+                                   spellCheck="false"
+                                   required="required"
+                                   autoComplete="name">
+                      </InputGroup>
 
     let passwordLabel = "密码"
     if(showPasswordReset) {
@@ -195,6 +218,16 @@ export default class Login extends React.Component {
                                     spellCheck="false"
                                     required="required"
                                     autoComplete="new-password">
+                         </InputGroup>
+
+    let confirmInput = <InputGroup className="ig-dark"
+                                    label="确认密码"
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    type="password"
+                                    spellCheck="false"
+                                    required="required"
+                                    >
                          </InputGroup>
 
     let showRegisterButton =    <ButtonCheck
@@ -226,10 +259,13 @@ export default class Login extends React.Component {
 
     if (showLogin) {
         unableLogin = ''
+        nameInput = ''
+        confirmInput = ''
     }
 
     if (showPasswordReset) {
         showLoginButton = ''
+        nameInput = ''
         showRegisterButton = ''
         usernameInput = ''
         unableLogin = ''
@@ -240,7 +276,9 @@ export default class Login extends React.Component {
           { showRegisterButton }
           { showLoginButton }
           { usernameInput }
+          { nameInput }
           { passwordInput }
+          { confirmInput }
           <button className="lw-btn" type="submit">
               <i className="fa fa-sign-in"></i>
           </button>

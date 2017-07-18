@@ -39,7 +39,7 @@ import PolicyInput from '../components/PolicyInput'
 import Policy from '../components/Policy'
 import BrowserDropdown from '../components/BrowserDropdown'
 import ConfirmModal from './ConfirmModal'
-import logo from '../../img/logo.svg'
+import logo from '../../img/logo.png'
 import * as actions from '../actions'
 import * as utils from '../utils'
 import * as mime from '../mime'
@@ -51,7 +51,7 @@ import {OWNERTYPE_EQUIPMENT, OWNERTYPE_USER, PATH_NAME_VERIFICATION} from "../co
 
 export default class Browse extends React.Component {
   componentDidMount() {
-    const {web, dispatch, currentBucket} = this.props
+    const {web, dispatch, currentEquipment} = this.props
     if (!web.LoggedIn()) return
     return web.ServerInfo()
         .then(res => {
@@ -75,49 +75,19 @@ export default class Browse extends React.Component {
   }
 
   componentWillMount() {
-    const {dispatch, currentBucket, web} = this.props
+    const {dispatch, currentEquipment, web, labMenu} = this.props
     // Clear out any stale message in the alert of Login page
     dispatch(actions.showAlert({
       type: 'danger',
       message: ''
     }))
     if (web.LoggedIn()) {
-      web.ListBuckets().then((res) => {
-          let listBuckets = (buckets) => {
-              dispatch(actions.setBuckets(buckets))
-              dispatch(actions.setVisibleBuckets(buckets))
-              if (location.pathname === minioBrowserPrefix
-                  || location.pathname === minioBrowserPrefix + '/') {
-                  browserHistory.push(utils.pathJoin(buckets[0].name))
-                  // dispatch(actions.selectBucket(buckets[0]))
-              }else if(currentBucket === "") {
-                  let decPathname = decodeURI(location.pathname)
-                  let obj = utils.pathSlice(decPathname)
-                  dispatch(actions.selectBucketByName(obj.bucketName))
-              }
+      web.ListLabs().then((res) => {
+          let listLabs = (labs) => {
+              dispatch(actions.setLabs(labs))
           }
-          dispatch(actions.setLoadResponse(res, null, null, listBuckets))
-
-      }).catch(e => {
-          dispatch(actions.setLoadingError(e))
+          dispatch(actions.setLoadResponse(res, null, null, listLabs))
       })
-        // .then(res => {
-        //
-        //     res.json().then(function (buckets) {
-        //         dispatch(actions.setBuckets(buckets))
-        //         dispatch(actions.setVisibleBuckets(buckets))
-        //         if (location.pathname === minioBrowserPrefix
-        //             || location.pathname === minioBrowserPrefix + '/') {
-        //             browserHistory.push(utils.pathJoin(buckets[0].name))
-        //             // dispatch(actions.selectBucket(buckets[0]))
-        //         }else if(currentBucket === "") {
-        //             let decPathname = decodeURI(location.pathname)
-        //             let obj = utils.pathSlice(decPathname)
-        //             dispatch(actions.selectBucketByName(obj.bucketName))
-        //         }
-        //     })
-        //
-        // })
     }
     this.history = browserHistory.listen(({pathname}) => {
       let decPathname = decodeURI(pathname)
@@ -130,12 +100,24 @@ export default class Browse extends React.Component {
       if (decPathname === minioBrowserPrefix + '/') {
         return
       }
-      let obj = utils.pathSlice(decPathname)
-      if (!web.LoggedIn()) {
-        dispatch(actions.selectBucketByName([obj.bucketName]))
-        dispatch(actions.setVisibleBuckets([obj.bucketName]))
-      }
-      dispatch(actions.selectBucketByName(obj.bucketName, obj.prefix))
+
+      let decPathnameSplit = decPathname.split("/");
+      let labName = decPathnameSplit[1]
+      let equipmentName = decPathnameSplit[2]
+
+      // if(labName) {
+      //     if(equipmentName) {
+      //         let selectEquipment = (equipment) => {
+      //             dispatch(actions.selectEquipment(equipment))
+      //         }
+      //         web.GetEquipmentByLabNameAndEquipmentName(labName, equipmentName).then((res => {
+      //             dispatch(actions.setLoadResponse(res, null, null, selectEquipment))
+      //         }))
+      //     }
+      // }
+
+
+
     })
   }
 
@@ -143,10 +125,31 @@ export default class Browse extends React.Component {
     this.history()
   }
 
-  selectBucket(e, bucket) {
+  selectEquipment(e, equipment) {
     e.preventDefault()
-    if (bucket === this.props.currentBucket) return
-    browserHistory.push(utils.pathJoin(bucket.name))
+    const {dispatch} = this.props
+    // browserHistory.push(utils.pathJoinEquipment(equipment.name))
+      // console.log(utils.pathJoinEquipment(equipment.name))
+    dispatch(actions.selectEquipment(equipment))
+    // browserHistory.push(utils.pathJoinEquipment(equipment.name))
+  }
+
+  selectLab(e, lab) {
+    const {web, dispatch, labMenu} = this.props
+      dispatch(actions.selectLab(lab))
+      // browserHistory.push(utils.pathJoinLab(lab.name))
+      // for (let labNode of labMenu) {
+      //     if(labNode.lab.id === lab.id) {
+      //
+      //         let firstEquipment = labNode.equipments[0];
+      //         if(firstEquipment) {
+      //             let pathJoinEquipment = utils.pathJoinEquipment(firstEquipment.name);
+      //             browserHistory.push(pathJoinEquipment);
+      //         } else {
+      //             dispatch(actions.selectLab(lab))
+      //         }
+      //     }
+      // }
   }
 
   searchBuckets(e) {
@@ -162,14 +165,15 @@ export default class Browse extends React.Component {
 
   selectPrefix(e, prefix) {
     e.preventDefault()
-    const {dispatch, currentPath, web, currentBucket, objects, fromLab} = this.props
+    const {dispatch, currentPath, web, currentEquipment, objects, fromLab} = this.props
     const encPrefix = encodeURI(prefix)
+    console.log("selectPrefix")
     if(fromLab) {
         return
     }
     if (prefix.endsWith('/') || prefix === '') {
       if (prefix === currentPath) return
-      browserHistory.push(utils.pathJoin(currentBucket.name))
+      browserHistory.push(utils.pathJoin(currentEquipment.name))
     } else {
       // window.location = `${window.location.origin}/download/20,35088d0e58?token=${storage.getItem('token')}`
         let selectObjects = objects.filter(object => {return object.name === prefix});
@@ -177,8 +181,8 @@ export default class Browse extends React.Component {
             let object = selectObjects[0];
             web.Download(`${object.code}`).then(response => response.blob())
                 .then(blob => {
-                    var url = window.URL.createObjectURL(blob);
-                    var anchor = document.createElement('a');
+                    let url = window.URL.createObjectURL(blob);
+                    let anchor = document.createElement('a');
                     anchor.href = url;
                     anchor.download = `${object.name}`;
                     anchor.click();
@@ -189,7 +193,6 @@ export default class Browse extends React.Component {
   }
 
   makeBucket(e) {
-      console.log("makeBucket")
     e.preventDefault()
     const bucketName = this.refs.makeBucketRef.value
     this.refs.makeBucketRef.value = ''
@@ -200,7 +203,7 @@ export default class Browse extends React.Component {
     })
       .then(() => {
         dispatch(actions.addBucket(bucketName))
-        dispatch(actions.selectBucket(bucketName))
+        dispatch(actions.selectEquipment(bucketName))
       })
       .catch(err => dispatch(actions.showAlert({
         type: 'danger',
@@ -247,13 +250,13 @@ export default class Browse extends React.Component {
     e.preventDefault()
     const {dispatch, buckets} = this.props
 
-    if (buckets.length === 0) {
-      dispatch(actions.showAlert({
-        type: 'danger',
-        message: "Bucket needs to be created before trying to upload files."
-      }))
-      return
-    }
+    // if (buckets.length === 0) {
+    //   dispatch(actions.showAlert({
+    //     type: 'danger',
+    //     message: "Bucket needs to be created before trying to upload files."
+    //   }))
+    //   return
+    // }
     let file = e.target.files[0]
     e.target.value = null
     this.xhr = new XMLHttpRequest()
@@ -261,7 +264,7 @@ export default class Browse extends React.Component {
   }
 
   removeObject() {
-    const {web, dispatch, currentPath, currentBucket, deleteConfirmation, checkedObjects} = this.props
+    const {web, dispatch, currentPath, currentEquipment, deleteConfirmation, checkedObjects} = this.props
     let objects = []
     if (checkedObjects.length > 0) {
       objects = checkedObjects
@@ -284,9 +287,9 @@ export default class Browse extends React.Component {
               dispatch(actions.checkedObjectsReset())
           } else {
               let delObject = deleteConfirmation.object
-              console.log(delObject)
               dispatch(actions.removeObject(delObject))
           }
+          dispatch(actions.refreshStorageInfo())
       })
       .catch(e => dispatch(actions.showAlert({
           type: 'danger',
@@ -347,7 +350,7 @@ export default class Browse extends React.Component {
   }
 
   logout(e) {
-    const {web} = this.props
+    const {dispatch, web} = this.props
     e.preventDefault()
     web.Logout()
     browserHistory.push(`${minioBrowserPrefix}/login`)
@@ -447,7 +450,7 @@ export default class Browse extends React.Component {
   downloadSelected() {
     const {dispatch} = this.props
     let req = {
-      bucketName: this.props.currentBucket,
+      bucketName: this.props.currentEquipment,
       objects: this.props.checkedObjects,
       prefix: this.props.currentPath
     }
@@ -457,10 +460,13 @@ export default class Browse extends React.Component {
     dispatch(actions.downloadSelected(requestUrl, req, this.xhr))
   }
 
+
   clearSelected() {
     const {dispatch} = this.props
     dispatch(actions.checkedObjectsReset())
   }
+
+
 
   render() {
     const {total, free} = this.props.storageInfo
@@ -468,7 +474,7 @@ export default class Browse extends React.Component {
     const {version, memory, platform, runtime} = this.props.serverInfo
     const {sidebarStatus} = this.props
     const {showSettings} = this.props
-    const {policies, currentBucket, currentPath} = this.props
+    const {policies, currentEquipment, currentPath} = this.props
     const {deleteConfirmation} = this.props
     const {shareObject} = this.props
     const {web, prefixWritable, istruncated} = this.props
@@ -496,7 +502,7 @@ export default class Browse extends React.Component {
                            Sign out
                          </Tooltip>
     let uploadTooltip = <Tooltip id="tt-upload-file">
-                          Upload file
+                          上传文件
                         </Tooltip>
     let makeBucketTooltip = <Tooltip id="tt-create-bucket">
                               Create bucket
@@ -526,11 +532,11 @@ export default class Browse extends React.Component {
           </div>
           <ul>
             <li>
-              <span>Used: </span>
+              <span>已使用: </span>
               { humanize.filesize(total - free) }
             </li>
             <li className="pull-right">
-              <span>Free: </span>
+              <span>剩余: </span>
               { humanize.filesize(total - used) }
             </li>
           </ul>
@@ -558,8 +564,7 @@ export default class Browse extends React.Component {
                          </OverlayTrigger>
                        </Dropdown.Menu>
                      </Dropdown>
-        console.log(fromLab, currentBucket.ownerType)
-        if(!fromLab && currentBucket.ownerType === OWNERTYPE_EQUIPMENT) {
+        if(!fromLab) {
             createButton = ''
         }
     } else {
@@ -582,15 +587,31 @@ export default class Browse extends React.Component {
                        </Dropdown>
     }
 
+      let createOperTitle = ''
+      if(web.LoginUser().roles[0] === "ADMIN") {
+          createOperTitle =  <div className="fesl-item fesl-create-oper" onClick={ this.sortObjectsBySize.bind(this) } data-sort="size">
+                              创建人
+                              <i className={ classNames({
+                                  'fesli-sort': true,
+                                  'fa': true,
+                                  'fa-sort-amount-desc': sortSizeOrder,
+                                  'fa-sort-amount-asc': !sortSizeOrder
+                              }) } />
+                          </div>
+      }
+
     return (
       <div className={ classNames({
                    'file-explorer': true,
                    'toggled': sidebarStatus
                  }) }>
-        <SideBar searchBuckets={ this.searchBuckets.bind(this) }
-          selectBucket={ this.selectBucket.bind(this) }
+        <SideBar
+          searchBuckets={ this.searchBuckets.bind(this) }
+          selectEquipment={ this.selectEquipment.bind(this) }
+          selectLab={ this.selectLab.bind(this) }
           clickOutside={ this.hideSidebar.bind(this) }
-          showPolicy={ this.showBucketPolicy.bind(this) } />
+          showPolicy={ this.showBucketPolicy.bind(this) }
+        />
         <div className="fe-body">
             {/*todo*/}
           {/*<div className={ 'list-actions' + (classNames({*/}
@@ -628,7 +649,7 @@ export default class Browse extends React.Component {
               <header className="fesl-row" data-type="folder">
                 <div className="fesl-item fesl-item-icon"></div>
                 <div className="fesl-item fesl-item-name" onClick={ this.sortObjectsByName.bind(this) } data-sort="name">
-                  Name
+                  文件名
                   <i className={ classNames({
                                    'fesli-sort': true,
                                    'fa': true,
@@ -636,8 +657,11 @@ export default class Browse extends React.Component {
                                    'fa-sort-alpha-asc': !sortNameOrder
                                  }) } />
                 </div>
+
+                { createOperTitle }
+
                 <div className="fesl-item fesl-item-size" onClick={ this.sortObjectsBySize.bind(this) } data-sort="size">
-                  Size
+                  大小
                   <i className={ classNames({
                                    'fesli-sort': true,
                                    'fa': true,
@@ -646,7 +670,7 @@ export default class Browse extends React.Component {
                                  }) } />
                 </div>
                 <div className="fesl-item fesl-item-modified" onClick={ this.sortObjectsByDate.bind(this) } data-sort="last-modified">
-                  Last Modified
+                  最后修改时间
                   <i className={ classNames({
                                    'fesli-sort': true,
                                    'fa': true,
@@ -669,7 +693,7 @@ export default class Browse extends React.Component {
                   checkObject={ this.checkObject.bind(this) }
                   checkedObjectsArray={ checkedObjects } />
               </InfiniteScroll>
-              <div className="text-center" style={ { display: (istruncated && currentBucket) ? 'block' : 'none' } }>
+              <div className="text-center" style={ { display: (istruncated && currentEquipment) ? 'block' : 'none' } }>
                 <span>Loading...</span>
               </div>
             </div>
@@ -743,23 +767,23 @@ export default class Browse extends React.Component {
               onHide={ this.hideBucketPolicy.bind(this) }>
               <ModalHeader>
                 Bucket Policy (
-                { currentBucket })
+                { currentEquipment })
                 <button className="close close-alt" onClick={ this.hideBucketPolicy.bind(this) }>
                   <span>×</span>
                 </button>
               </ModalHeader>
               <div className="pm-body">
-                <PolicyInput bucket={ currentBucket } />
+                <PolicyInput bucket={ currentEquipment } />
                 { policies.map((policy, i) => <Policy key={ i } prefix={ policy.prefix } policy={ policy.policy } />
                   ) }
               </div>
             </Modal>
             <ConfirmModal show={ deleteConfirmation.show }
               icon='fa fa-exclamation-triangle mci-red'
-              text='Are you sure you want to delete?'
-              sub='This cannot be undone!'
-              okText='Delete'
-              cancelText='Cancel'
+              text='确认删除?'
+              sub='删除!'
+              okText='删除'
+              cancelText='取消'
               okHandler={ this.removeObject.bind(this) }
               cancelHandler={ this.hideDeleteConfirmation.bind(this) }>
             </ConfirmModal>

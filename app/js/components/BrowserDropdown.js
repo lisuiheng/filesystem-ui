@@ -45,7 +45,7 @@ let BrowserDropdown = ({fullScreenFunc, aboutFunc, settingsFunc, logoutFunc}) =>
             {/*<a href="" onClick={ settingsFunc }>Settings <i className="fa fa-cog"></i></a>*/}
           {/*</li>*/}
           <li>
-            <a href="" onClick={ logoutFunc }>Sign Out <i className="fa fa-sign-out"></i></a>
+            <a href="" onClick={ logoutFunc }>退出<i className="fa fa-sign-out"></i></a>
           </li>
         </Dropdown.Menu>
       </Dropdown>

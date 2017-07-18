@@ -24,7 +24,8 @@ export default (state = {
     istruncated: true,
     storageInfo: {},
     serverInfo: {},
-    currentBucket: '',
+    currentEquipment: {},
+    currentLab: {},
     currentPath: '',
     showMakeBucketModal: false,
     uploads: {},
@@ -72,6 +73,8 @@ export default (state = {
         result: {}
     },
     fromLab: false,
+    labs: [],
+    labMenu: [],
   }, action) => {
   let newState = Object.assign({}, state)
   switch (action.type) {
@@ -88,8 +91,11 @@ export default (state = {
     case actions.SET_VISIBLE_BUCKETS:
       newState.visibleBuckets = action.visibleBuckets
       break
-    case actions.SET_CURRENT_BUCKET:
-      newState.currentBucket = action.currentBucket
+    case actions.SET_CURRENT_EQUIPMENT:
+      newState.currentEquipment = action.currentEquipment
+      break
+    case actions.SET_CURRENT_LAB:
+      newState.currentLab = action.currentLab
       break
     case actions.APPEND_OBJECTS:
       newState.objects = [...newState.objects, ...action.objects]
@@ -170,8 +176,8 @@ export default (state = {
       break
     case actions.SET_LOGIN_REDIRECT_PATH:
       newState.loginRedirectPath = action.path
-    case actions.SET_LOAD_BUCKET:
-      newState.loadBucket = action.loadBucket
+    case actions.SET_LOAD_EQUIPMEN:
+      newState.loadEquipmen = action.loadEquipmen
       break
     case actions.SET_LOAD_PATH:
       newState.loadPath = action.loadPath
@@ -252,6 +258,9 @@ export default (state = {
       break
     case actions.SET_FROM_LAB:
       newState.fromLab = action.fromLab
+    break
+    case actions.SET_LAB_MENU:
+      newState.labMenu = action.labMenu
     break
   }
 

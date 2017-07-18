@@ -46,7 +46,6 @@ export default class Web {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 };
-                console.log(options)
                 body = JSON.stringify(options);
             } else {
                 let formData = new FormData();
@@ -136,18 +135,25 @@ export default class Web {
   LoggedIn() {
     return !!storage.getItem('token')
   }
+  LoginUser() {
+      let token = storage.getItem('token');
+      if(token) {
+          let decode = jwt_decode(token);
+          return JSON.parse(decode.user);
+      }
+
+  }
   Login(args) {
-    return this.makeCallJSONPost('/manager/login', args)
-      .then(res => {
-          let authorization = res.headers.get("authorization");
-          if(authorization !== null) {
-            res.headers.get("authorization")
-            storage.setItem('token', `${authorization}`)
-            let decode = jwt_decode(authorization);
-            console.log(decode)
-        }
-        return res
-      })
+      return this.makeCallJSONPost('/manager/login', args)
+          .then(res => {
+              let authorization = res.headers.get("authorization");
+              if(authorization !== null) {
+                  res.headers.get("authorization")
+                  storage.setItem('token', `${authorization}`)
+                  let decode = jwt_decode(authorization);
+              }
+              return res
+          })
   }
   Regist(args) {
     return this.makeCallPost('/manager/users/regist', args)
@@ -165,7 +171,7 @@ export default class Web {
     return this.makeCallGet('/manager/storageInfo')
   }
   ListBuckets() {
-      return this.makeCallGet('/manager/listBuckets')
+      return this.makeCallGet('/manager/labs')
   }
   MakeBucket(args) {
     return this.makeCall('MakeBucket', args)
@@ -206,5 +212,23 @@ export default class Web {
   }
   ListAllBucketPolicies(args) {
     return this.makeCall('ListAllBucketPolicies', args)
+  }
+  GetUser(userId) {
+     return this.makeCallGet(`/manager/users/${userId}`);
+  }
+  ListLabs() {
+      return this.makeCallGet('/manager/labs')
+  }
+  GetLabById(id) {
+      return this.makeCallGet(`/manager/labs/${id}`)
+  }
+  GetLabByName(name) {
+      return this.makeCallGet(`/manager/labs/name/${name}`)
+  }
+  GetEquipmentByLabNameAndEquipmentName(labName, equipmentName) {
+      return this.makeCallGet(`/manager/equipments/${labName}/${equipmentName}`)
+  }
+  ListEquipments(labId) {
+      return this.makeCallGet(`/manager/lab/${labId}/equipments`)
   }
 }

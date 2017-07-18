@@ -17,7 +17,7 @@
 import React from 'react'
 import connect from 'react-redux/lib/components/connect'
 
-let Path = ({currentBucket, currentPath, selectPrefix}) => {
+let Path = ({ currentPath, selectPrefix, currentEquipment}) => {
   let dirPath = []
   let path = ''
   if (currentPath) {
@@ -29,13 +29,14 @@ let Path = ({currentBucket, currentPath, selectPrefix}) => {
   }
 
   return (
-    <h2><span className="main"><a onClick={ (e) => selectPrefix(e, '') } href="">{ currentBucket.name }</a></span>{ path }</h2>
+    <h2><span className="main"><a onClick={ (e) => selectPrefix(e, '') } href="">{currentEquipment.name}</a></span>{ path }</h2>
   )
 }
 
 export default connect(state => {
   return {
-    currentBucket: state.currentBucket,
-    currentPath: state.currentPath
+    currentPath: state.currentPath,
+    currentEquipment: state.currentEquipment
+
   }
 })(Path)
