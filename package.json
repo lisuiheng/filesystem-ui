@@ -76,12 +76,14 @@
     "local-storage-fallback": "^3.0.0",
     "mime-db": "^1.25.0",
     "mime-types": "^2.1.13",
+    "promise-polyfill": "^6.0.2",
     "react": "^0.14.8",
     "react-copy-to-clipboard": "^4.2.3",
     "react-custom-scrollbars": "^2.2.2",
     "react-dom": "^0.14.6",
     "react-dropzone": "^3.5.3",
     "react-infinite-scroller": "^1.0.6",
-    "react-onclickout": "2.0.4"
+    "react-onclickout": "2.0.4",
+    "whatwg-fetch": "^2.0.3"
   }
 }

@@ -566,10 +566,7 @@ export const downloadSelected = (url, req, xhr) => {
 export const uploadFile = (file, xhr) => {
   return (dispatch, getState) => {
     const {currentEquipment, currentPath, storageInfo} = getState()
-    // const uploadUrl = `${window.location.origin}/minio/upload/${currentEquipment.ownerType}/${currentEquipment.ownerId}`
     const uploadUrl = `${window.location.origin}/zuul/storage/submit?ownerType=EQUIPMENT&ownerId=${currentEquipment.id}`
-    // const uploadUrl = `${window.location.origin}/zuul/storage/submit`
-    // The slug is a unique identifer for the file upload.
     const slug = `${currentEquipment}-${currentPath}-${file.name}`
 
     xhr.open('POST', uploadUrl, true)

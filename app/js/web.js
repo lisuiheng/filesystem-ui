@@ -16,6 +16,7 @@
 
 import storage from "local-storage-fallback";
 import jwt_decode from "jwt-decode"
+import 'whatwg-fetch'
 
 export default class Web {
     constructor(endpoint, dispatch) {

@@ -105,6 +105,7 @@ var exports = {
 
 if (process.env.NODE_ENV === 'dev') {
   exports.entry = [
+     'whatwg-fetch',
     'webpack/hot/dev-server',
     'webpack-dev-server/client?http://localhost:8080',
     path.resolve(__dirname, 'app/index.js')
