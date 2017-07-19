@@ -178,11 +178,13 @@ export default class Browse extends React.Component {
             let object = selectObjects[0];
             web.Download(`${object.code}`).then(response => response.blob())
                 .then(blob => {
-                    let url = URL.createObjectURL(blob);
+                    let url = window.URL.createObjectURL(blob);
                     let anchor = document.createElement('a');
+                    document.body.appendChild(anchor);
                     anchor.href = url;
                     anchor.download = `${object.name}`;
                     anchor.click();
+                    document.body.removeChild(anchor);
                 });
         }
 
