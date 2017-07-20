@@ -217,7 +217,7 @@ export default class Login extends React.Component {
                                     type="password"
                                     spellCheck="false"
                                     required="required"
-                                    autoComplete="new-password">
+                                    autoComplete="off">
                          </InputGroup>
 
     let confirmInput = <InputGroup className="ig-dark"

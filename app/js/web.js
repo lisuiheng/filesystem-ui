@@ -232,4 +232,7 @@ export default class Web {
   ListEquipments(labId) {
       return this.makeCallGet(`/manager/lab/${labId}/equipments`)
   }
+  FileExit(args) {
+      return this.makeCallGet("/manager/file/exit", args)
+  }
 }

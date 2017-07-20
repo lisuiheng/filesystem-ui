@@ -172,10 +172,10 @@ export default class Browse extends React.Component {
       if (prefix === currentPath) return
       browserHistory.push(utils.pathJoin(currentEquipment.name))
     } else {
-      // window.location = `${window.location.origin}/download/20,35088d0e58?token=${storage.getItem('token')}`
         let selectObjects = objects.filter(object => {return object.name === prefix});
         if (selectObjects.length) {
             let object = selectObjects[0];
+
             web.Download(`${object.code}`).then(response => response.blob())
                 .then(blob => {
                     let url = window.URL.createObjectURL(blob);
@@ -234,22 +234,38 @@ export default class Browse extends React.Component {
   }
 
 
-
   uploadFile(e) {
     e.preventDefault()
-    const {dispatch, buckets} = this.props
+    const {dispatch, web, currentEquipment} = this.props
 
-    // if (buckets.length === 0) {
-    //   dispatch(actions.showAlert({
-    //     type: 'danger',
-    //     message: "Bucket needs to be created before trying to upload files."
-    //   }))
-    //   return
-    // }
     let file = e.target.files[0]
+
+    let uploadFile = (fileExit) => {
+        console.log(fileExit)
+        if(fileExit) {
+            dispatch(actions.showOverwriteConfirmation(file))
+        } else {
+            this.upload(file)
+        }
+    }
+    web.FileExit({
+        name: file.name,
+        ownerType: "EQUIPMENT",
+        ownerId: currentEquipment.id
+    }).then((res) => {
+        dispatch(actions.setLoadResponse(res, null, null, uploadFile))
+    }).catch(e => {
+        dispatch(actions.setLoadingException(e))
+    })
     e.target.value = null
-    this.xhr = new XMLHttpRequest()
-    dispatch(actions.uploadFile(file, this.xhr))
+
+  }
+
+  upload() {
+      const {dispatch, overwriteConfirmation} = this.props
+      this.xhr = new XMLHttpRequest()
+      dispatch(actions.uploadFile(overwriteConfirmation.object, this.xhr))
+      dispatch(actions.hideOverwriteConfirmation())
   }
 
   removeObject() {
@@ -303,6 +319,18 @@ export default class Browse extends React.Component {
     const {dispatch} = this.props
     dispatch(actions.hideDeleteConfirmation())
   }
+
+
+  showOverwriteConfirmation(e, object) {
+    e.preventDefault()
+    const {dispatch} = this.props
+    dispatch(actions.showOverwriteConfirmation(object))
+  }
+
+   hideOverwriteConfirmation() {
+    const {dispatch} = this.props
+    dispatch(actions.hideOverwriteConfirmation())
+   }
 
   shareObject(e, object) {
     e.preventDefault()
@@ -459,7 +487,7 @@ export default class Browse extends React.Component {
 
   render() {
     const {total, free} = this.props.storageInfo
-    const {showMakeBucketModal, alert, sortNameOrder, sortSizeOrder, sortDateOrder, showAbout, checkedObjects, fromLab} = this.props
+    const {showMakeBucketModal, alert, sortNameOrder, sortSizeOrder, sortDateOrder, showAbout, overwriteConfirmation, checkedObjects, fromLab} = this.props
     const {version, memory, platform, runtime} = this.props.serverInfo
     const {sidebarStatus} = this.props
     const {showSettings} = this.props
@@ -757,6 +785,15 @@ export default class Browse extends React.Component {
               cancelText='取消'
               okHandler={ this.removeObject.bind(this) }
               cancelHandler={ this.hideDeleteConfirmation.bind(this) }>
+            </ConfirmModal>
+            <ConfirmModal show={ overwriteConfirmation.show }
+                        icon='fa fa-exclamation-triangle mci-red'
+                        text='存在同名文件?'
+                        sub='确认覆盖?'
+                        okText='覆盖'
+                        cancelText='取消'
+                        okHandler={ this.upload.bind(this) }
+                        cancelHandler={ this.hideDeleteConfirmation.bind(this) }>
             </ConfirmModal>
             <Modal show={ shareObject.show }
               animation={ false }

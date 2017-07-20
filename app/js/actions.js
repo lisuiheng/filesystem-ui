@@ -51,6 +51,7 @@ export const SHOW_SETTINGS = 'SHOW_SETTINGS'
 export const SET_SETTINGS = 'SET_SETTINGS'
 export const SET_SHARE_OBJECT = 'SET_SHARE_OBJECT'
 export const DELETE_CONFIRMATION = 'DELETE_CONFIRMATION'
+export const OVERWRITE_CONFIRMATION = 'OVERWRITE_CONFIRMATION'
 export const SET_PREFIX_WRITABLE = 'SET_PREFIX_WRITABLE'
 export const REMOVE_OBJECT = 'REMOVE_OBJECT'
 export const CHECKED_OBJECTS_ADD = 'CHECKED_OBJECTS_ADD'
@@ -81,6 +82,26 @@ export const showDeleteConfirmation = (object) => {
 export const hideDeleteConfirmation = () => {
     return {
         type: DELETE_CONFIRMATION,
+        payload: {
+            object: '',
+            show: false
+        }
+    }
+}
+
+export const showOverwriteConfirmation = (object) => {
+  return {
+    type: OVERWRITE_CONFIRMATION,
+    payload: {
+      object,
+      show: true
+    }
+  }
+}
+
+export const hideOverwriteConfirmation = () => {
+    return {
+        type: OVERWRITE_CONFIRMATION,
         payload: {
             object: '',
             show: false

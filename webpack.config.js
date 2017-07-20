@@ -61,15 +61,15 @@ var exports = {
     },
     proxy: {
       '/manager': {
-	target: 'http://localhost:8081',
+	target: 'http://127.0.0.1:81',
 	secure: false
       },
       '/zuul': {
-	target: 'http://localhost:8081',
+	target: 'http://127.0.0.1:81',
 	secure: false
       },
     '/download': {
-	target: 'http://localhost:8081',
+	target: 'http://127.0.0.1:81',
 	secure: false
       },
    //    '/minio/download/*': {
@@ -105,7 +105,6 @@ var exports = {
 
 if (process.env.NODE_ENV === 'dev') {
   exports.entry = [
-     'whatwg-fetch',
     'webpack/hot/dev-server',
     'webpack-dev-server/client?http://localhost:8080',
     path.resolve(__dirname, 'app/index.js')

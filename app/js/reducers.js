@@ -44,9 +44,13 @@ export default (state = {
       secretKeyVisible: false
     },
     showSettings: false,
-    deleteConfirmation: {
+    overwriteConfirmation: {
       object: '',
       show: false
+    },
+    deleteConfirmation: {
+        object: '',
+        show: false
     },
     resetPasswordConfirmation: {
         object: '',
@@ -177,6 +181,9 @@ export default (state = {
       break
     case actions.DELETE_CONFIRMATION:
       newState.deleteConfirmation = Object.assign({}, action.payload)
+      break
+    case actions.OVERWRITE_CONFIRMATION:
+      newState.overwriteConfirmation = Object.assign({}, action.payload)
       break
     case actions.SEND_RESET_PASSWORD_CONFIRMATION:
       newState.resetPasswordConfirmation = Object.assign({}, action.payload)
