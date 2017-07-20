@@ -21,6 +21,7 @@ var fs = require('fs')
 
 var isProduction = process.env.NODE_ENV == 'production' ? true : false
 var date = moment.utc()
+var releaseTag = date.format('YYYY-MM-DDTHH-mm-ss') + 'Z'
 var buildType = 'DEVELOPMENT'
 if (process.env.MINIO_UI_BUILD) buildType = process.env.MINIO_UI_BUILD
 
@@ -48,6 +49,21 @@ async.waterfall([
       }
       exec(cmd, cb)
     },
+    function(stdout, stderr, cb) {
+        fs.renameSync('production/index_bundle.js',
+            'production/index_bundle-' + releaseTag + '.js')
+        var cmd = 'git log --format="%H" -n1'
+        console.log('Running', cmd)
+        exec(cmd, cb)
+    },
+    function(stdout, stderr, cb) {
+        var assetsFileName = 'production/index.html'
+        var contents = fs.readFileSync(assetsFileName , 'utf8')
+        contents = contents.replace(/index_bundle.js/g, 'index_bundle-' + releaseTag + '.js')
+        fs.writeFileSync(assetsFileName, contents, 'utf8')
+        console.log('UI assets file :', assetsFileName)
+        cb()
+    }
   ], function(err) {
     if (err) return console.log(err)
   })
